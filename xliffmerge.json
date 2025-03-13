@@ -1,0 +1,8 @@
+{
+    "xliffmergeOptions": {
+    "defaultLanguage": "es-AR",
+    "languages": [ "es-AR", "en" ],
+    "srcDir": "src/locale",
+    "genDir": "src/locale"
+    }
+}

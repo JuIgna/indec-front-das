@@ -1,0 +1,78 @@
+<!--Modal Comparador-->
+<div class="modal-overlay2">
+    <div class="modal2">
+        <h2 i18n>Comparación de Precios</h2>
+
+        <!-- Selección de Provincia -->
+        <div class="form-group m-2">
+            <label for="provincia" i18n>Provincia</label>
+            <select id="provincia" class="form-control" (change)="onProvinciaChange($event)">
+                <option value="" selected i18n>Seleccione una Provincia</option>
+                <option *ngFor="let provincia of provincias" [value]="provincia.cod_provincia"
+                    [selected]="provincia.cod_provincia === cod_provincia">
+                    {{ provincia.nom_provincia }}
+                </option>
+            </select>
+        </div>
+
+        <!-- Selección de Localidad -->
+        <div class="form-group m-2" *ngIf="showLocalidades">
+            <label for="localidad" i18n>Localidad</label>
+            <select id="localidad" class="form-control" (change)="onLocalidadChange($event)">
+                <option value="" selected i18n>Seleccione una Localidad</option>
+                <option *ngFor="let localidad of localidades" [value]="localidad.nro_localidad"
+                    [selected]="localidad.nro_localidad === nro_localidad">
+                    {{ localidad.nom_localidad }}
+                </option>
+            </select>
+        </div>
+
+        <!-- Botón Comparar -->
+        <button class="btn btn-primary m-2" (click)="compararProductos()" *ngIf="showLocalidades" i18n>Comparar</button>
+
+        <table *ngIf="productosComparados.length > 0" class="tabla-precios">
+            <tr>
+                <th i18n>Producto</th>
+                <th *ngFor="let supermercado of supermercados"
+                    [ngClass]="{'supermercado-ganador': supermercado === supermercadoMasBarato}">
+                    {{ supermercado }}
+                </th>
+            </tr>
+
+            <tr *ngFor="let producto of productosComparados">
+                <td>
+                    <img [src]="producto.imagen" alt="{{ producto.nom_producto }}" width="50">
+                    <br>
+                    {{ producto.nom_producto }}
+                </td>
+                <td *ngFor="let supermercado of supermercados" [ngClass]="{
+                        'precio-barato': producto.precios[supermercado] === obtenerPrecioMasBajo(producto),
+                        'supermercado-ganador': supermercado === supermercadoMasBarato
+                    }">
+                    <span *ngIf="producto.precios[supermercado] !== undefined">
+                        {{ producto.precios[supermercado] | currency }}
+                    </span>
+                    <span *ngIf="producto.precios[supermercado] === undefined" class="sin-stock" i18n>Sin Stock</span>
+
+                    <span *ngIf="producto.vigente === 'N'" class="warning-text" i18n>⚠ Precio Desactualizado</span>
+                </td>
+            </tr>
+
+            <tr>
+                <td i18n><strong>Total</strong></td>
+                <td *ngFor="let supermercado of supermercados"
+                    [ngClass]="{'supermercado-ganador': supermercado === supermercadoMasBarato}">
+                    <strong>{{ totalesSupermercado[supermercado] | currency }}</strong>
+                </td>
+            </tr>
+        </table>
+
+
+
+
+        <p *ngIf="supermercadoMasBarato" class="mt-2" i18n>Supermercado más barato: <strong>{{ supermercadoMasBarato
+                }}</strong></p>
+
+        <button class="btn btn-danger" (click)="closeModal()" i18n>Cerrar</button>
+    </div>
+</div>

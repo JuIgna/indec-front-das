@@ -1,0 +1,223 @@
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container-fluid">
+        <!-- Botón de Menú Lateral -->
+        <button class="btn btn-light me-3" (click)="toggleSidebar()">
+            <i class="bi bi-list"></i>
+        </button>
+
+        <!-- Título Centrado -->
+        <span class="navbar-brand mx-auto" id="titulo" i18n>Indec Comparador de Precios</span>
+
+        <!-- Ícono de Carrito con contador -->
+        <button class="btn btn-light cart-button" (click)="toggleCart()">
+            <i class="bi bi-cart"></i>
+            <span *ngIf="cartItems.length > 0" class="cart-counter">{{ cartItems.length }}</span>
+        </button>
+    </div>
+</nav>
+
+<!-- Menú Lateral -->
+<div class="sidebar" [class.open]="isSidebarOpen">
+    <button class="close-btn" (click)="closeMenus()"><i class="bi bi-x"></i></button>
+    <h4 i18n>Nuestros Servicios</h4>
+
+    <!-- Opciones del menú -->
+    <ul class="list-unstyled mt-3">
+        <li>
+            <button class="btn btn-light w-100 btn-menu" (click)="goToPriceComparator()" i18n>
+                <i class="bi bi-bar-chart"></i> Comparador de Precio
+            </button>
+        </li>
+        <li>
+            <button class="btn btn-light w-100 btn-menu" (click)="goToBranches()" i18n>
+                <i class="bi bi-geo-alt"></i> Buscar Sucursales
+            </button>
+        </li>
+    </ul>
+
+    <!-- Selector de idioma -->
+    <div class="language-selector mt-3">
+        <label i18n for="language">Idioma:</label>
+        <div class="dropdown">
+            <button class="btn btn-light dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                <img [src]="'flags/' + selectedLanguage + '.png'" class="flag-icon"> {{ selectedLanguageName }}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="languageDropdown">
+                <li *ngFor="let idioma of idiomas">
+                    <!-- Elimina href="#" y usa (click) para llamar a la función changeLanguage -->
+                    <a class="dropdown-item" (click)="changeLanguage(idioma.cod_idioma)">
+                        <img [src]="'flags/' + idioma.cod_idioma + '.png'" class="flag-icon"> {{ idioma.nom_idioma }}
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+
+</div>
+
+
+<div *ngIf="isSidebarOpen || isCartOpen" class="overlay" (click)="closeMenus()"></div>
+<!-- Carrito -->
+<div class="cart-sidebar" [class.open]="isCartOpen">
+    <button class="close-btn" (click)="closeMenus()"><i class="bi bi-x"></i></button>
+    <h4 i18n>Carrito</h4>
+    <div *ngIf="cartItems.length > 0; else emptyCart">
+        <ul class="list-group">
+            <li *ngFor="let product of cartItems" class="list-group-item d-flex align-items-center">
+                <img [src]="product.imagen" class="cart-img me-2" alt="Imagen del producto">
+                <div class="cart-details flex-grow-1">
+                    <strong>{{ product.nom_producto }}</strong>
+                </div>
+                <button (click)="borrarDelCarrito(product)" class="btn btn-danger btn-sm">
+                    <i class="bi bi-cart-dash"></i>
+                </button>
+            </li>
+        </ul>
+
+        <!-- Botón para vaciar el carrito -->
+        <button class="btn btn-warning mt-3 w-100" (click)="limpiarCarrito()" i18n>
+            <i class="bi bi-trash"></i> Vaciar Carrito
+        </button>
+
+        <button class="btn btn-success mt-3 w-100" id="btn-comparar" (click)="goToComparador()" i18n>
+            Comparar Precios
+        </button>
+    </div>
+    <ng-template #emptyCart>
+        <p class="text-center text-muted" i18n>El carrito está vacío.</p>
+    </ng-template>
+</div>
+
+
+
+<!-- Loader -->
+<div *ngIf="isLoading" class="loading-overlay">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden" i18n>Cargando...</span>
+    </div>
+    <p i18n>Cargando productos...</p>
+</div>
+
+<!-- Lista de Productos (Solo se muestra cuando isLoading es false) -->
+<div *ngIf="!isLoading">
+    <div class="product-list">
+        <h2 style="text-align: center;" i18n>Lista de Productos</h2>
+
+        <!-- Buscador -->
+        <div class="mb-3">
+            <input type="text" class="form-control" i18n-placeholder placeholder="Buscar productos..."
+                [(ngModel)]="searchTerm" />
+        </div>
+
+        <!-- Filtros -->
+        <div class="row mb-3">
+            <!-- Categoría -->
+            <div class="col-md-3">
+                <label for="categoria" i18n>Categoría</label>
+                <select id="categoria" class="form-control" (change)="filtrarProductos()"
+                    [(ngModel)]="filtroSeleccionado.categoria">
+                    <option value="" i18n>Todas</option>
+                    <option *ngFor="let cat of categoriasDisponibles" [value]="cat">{{ cat }}</option>
+                </select>
+            </div>
+
+            <!-- Marca -->
+            <div class="col-md-3">
+                <label for="marca" i18n>Marca</label>
+                <select id="marca" class="form-control" (change)="filtrarProductos()"
+                    [(ngModel)]="filtroSeleccionado.marca">
+                    <option value="" i18n>Todas</option>
+                    <option *ngFor="let marca of marcasDisponibles" [value]="marca">{{ marca }}</option>
+                </select>
+            </div>
+
+            <!-- Rubro -->
+            <div class="col-md-3">
+                <label for="rubro" i18n>Rubro</label>
+                <select id="rubro" class="form-control" (change)="filtrarProductos()"
+                    [(ngModel)]="filtroSeleccionado.rubro">
+                    <option value="" i18n>Todos</option>
+                    <option *ngFor="let rubro of rubrosDisponibles" [value]="rubro">{{ rubro }}</option>
+                </select>
+            </div>
+
+            <!-- Tipo de Producto -->
+            <div class="col-md-3">
+                <label for="tipo" i18n>Tipo de Producto</label>
+                <select id="tipo" class="form-control" (change)="filtrarProductos()"
+                    [(ngModel)]="filtroSeleccionado.tipo">
+                    <option value="" i18n>Todos</option>
+                    <option *ngFor="let tipo of tiposDisponibles" [value]="tipo">{{ tipo }}</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Lista de Productos -->
+        <div *ngIf="filteredProducts.length > 0; else emptyList">
+            <div class="row">
+                <div *ngFor="let product of filteredProducts | buscadorProductos: searchTerm" class="col-md-3 mb-4">
+                    <div class="card">
+                        <img src="{{ product.imagen }}" class="card-img-top" alt="Imagen del producto">
+                        <div class="card-body">
+                            <h5 class="card-title text-center">{{ product.nom_producto }}</h5>
+                            <p class="card-text text-center">{{ product.nom_marca }}</p>
+                            <div class="d-flex justify-content-between">
+                                <button class="btn btn-success btn-producto" [disabled]="productoEnCarrito(product)"
+                                    (click)="agregarAlCarrito(product)" i18n>
+                                    <i class="bi"
+                                        [ngClass]="productoEnCarrito(product) ? 'bi-cart-check' : 'bi-cart-plus'"></i>
+                                    {{ productoEnCarrito(product) ? 'En el Carrito' : 'Agregar al Carrito' }}
+                                </button>
+                                <button class="btn btn-info btn-producto" (click)="verDetalles(product)">
+                                    <i class="bi bi-clipboard2-plus" i18n></i> Ver Detalles
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <ng-template #emptyList>
+            <p i18n>No hay productos disponibles.</p>
+        </ng-template>
+    </div>
+
+</div>
+
+
+
+<div *ngIf="mostrarModal" class="modal-overlay"></div>
+
+<!-- Modal de Detalles del Producto -->
+<div *ngIf="mostrarModal" class="modal fade show d-block modal-anim" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" i18n>Detalles del Producto</h5>
+            </div>
+            <div class="modal-body">
+                <!-- Imagen del Producto -->
+                <div class="text-center mb-3">
+                    <img [src]="productoSeleccionado.imagen" alt="Imagen del producto" class="img-fluid rounded"
+                        style="max-height: 200px; object-fit: contain;">
+                </div>
+                <!-- Detalles del Producto -->
+                <p i18n><strong>Nombre del Producto:</strong> {{ productoSeleccionado?.nom_producto }}</p>
+                <p i18n><strong>Descripción:</strong> {{ productoSeleccionado?.desc_producto }}</p>
+                <p i18n><strong>Categoría:</strong> {{ productoSeleccionado?.nom_categoria }}</p>
+                <p i18n><strong>Marca:</strong> {{ productoSeleccionado?.nom_marca }}</p>
+                <p i18n><strong>Tipo de Producto:</strong> {{ productoSeleccionado?.nom_tipo_producto }}</p>
+                <p i18n><strong>Rubro:</strong> {{ productoSeleccionado?.nom_rubro }}</p>
+                <p i18n><strong>Vigente:</strong> {{ productoSeleccionado?.vigente === 's' ? 'Sí' : 'No' }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" (click)="cerrarModal()" i18n>Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<router-outlet></router-outlet>
