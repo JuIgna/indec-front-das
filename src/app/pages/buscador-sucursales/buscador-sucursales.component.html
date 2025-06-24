@@ -1,141 +1,136 @@
-<nav class="navbar navbar-expand-lg navbar-light">
-    <div class="container-fluid">
-        <!-- Botón de Menú Lateral -->
-        <button class="btn btn-light me-3" (click)="toggleSidebar()">
-            <i class="bi bi-list"></i>
-        </button>
+<!-- Barra de navegación -->
+<mat-toolbar color="primary" class="navbar">
+  <!-- Botón de Menú Lateral -->
+  <button mat-icon-button (click)="toggleSidebar()">
+    <mat-icon>menu</mat-icon>
+  </button>
 
-        <!-- Título Centrado -->
-        <span class="navbar-brand" id="titulo" i18n>Buscador de Sucursales</span>
+  <!-- Título Centrado -->
+  <span class="toolbar-title" i18n>Buscador de Sucursales</span>
 
-
-        <img src="Logo_Indec.png" alt="Icono" style="width: 60px; height: 30px;" />
-    </div>
-</nav>
+  <!-- Logo -->
+  <img src="Logo_Indec.png" alt="Icono" class="logo" />
+</mat-toolbar>
 
 <!-- Loader -->
 <div *ngIf="isLoading" class="loading-overlay">
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden" i18n>Cargando...</span>
-    </div>
-    <p i18n>Cargando sucursales...</p>
+  <mat-spinner color="primary"></mat-spinner>
+  <p i18n>Cargando sucursales...</p>
 </div>
-
-<!-- Fondo Oscuro (Overlay) -->
-<div *ngIf="isSidebarOpen" class="overlay" (click)="closeMenus()"></div>
 
 <!-- Menú Lateral -->
-<div class="sidebar" [class.open]="isSidebarOpen">
-    <button class="close-btn" (click)="closeMenus()"><i class="bi bi-x"></i></button>
-    <h4 i18n>Nuestros Servicios</h4>
+<mat-sidenav-container>
+  <mat-sidenav #sidenav mode="over" [(opened)]="isSidebarOpen" (closed)="closeMenus()" class="sidebar">
+    <div class="sidenav-header">
+      <button mat-icon-button class="close-btn" (click)="closeMenus()">
+        <mat-icon>close</mat-icon>
+      </button>
+      <h4 i18n>Nuestros Servicios</h4>
+    </div>
     <!-- Opciones del menú -->
-    <ul class="list-unstyled mt-3">
-        <li>
-            <button class="btn btn-light w-100 btn-menu" (click)="goToPriceComparator()" i18n>
-                <i class="bi bi-bar-chart"></i> Comparador de Precio
-            </button>
-        </li>
-        <li>
-            <button class="btn btn-light w-100 btn-menu" (click)="goToBranches()" i18n>
-                <i class="bi bi-geo-alt"></i> Buscar Sucursales
-            </button>
-        </li>
-
-    </ul>
+    <mat-nav-list>
+      <a mat-list-item (click)="goToPriceComparator()" i18n>
+        <mat-icon>bar_chart</mat-icon> Comparador de Precio
+      </a>
+      <a mat-list-item (click)="goToBranches()" i18n>
+        <mat-icon>location_on</mat-icon> Buscar Sucursales
+      </a>
+    </mat-nav-list>
 
     <!-- Selector de idioma -->
-    <div class="language-selector mt-3">
-        <label i18n for="language">Idioma:</label>
-        <div class="dropdown">
-            <button class="btn btn-light dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                <img [src]="'flags/' + selectedLanguage + '.png'" class="flag-icon"> {{ selectedLanguageName }}
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="languageDropdown">
-                <li *ngFor="let idioma of idiomas">
-                    <!-- Elimina href="#" y usa (click) para llamar a la función changeLanguage -->
-                    <a class="dropdown-item" (click)="changeLanguage(idioma.cod_idioma)">
-                        <img [src]="'flags/' + idioma.cod_idioma + '.png'" class="flag-icon"> {{ idioma.nom_idioma }}
-                    </a>
-                </li>
-            </ul>
-        </div>
+    <div class="language-selector">
+      <label i18n for="language">Idioma:</label>
+      <button mat-button [matMenuTriggerFor]="languageMenu">
+        <img [src]="'flags/' + selectedLanguage + '.png'" class="flag-icon" alt="Bandera">
+        {{ selectedLanguageName }}
+      </button>
+      <mat-menu #languageMenu="matMenu">
+        <button mat-menu-item *ngFor="let idioma of idiomas" (click)="changeLanguage(idioma.cod_idioma)">
+          <img [src]="'flags/' + idioma.cod_idioma + '.png'" class="flag-icon" alt="Bandera">
+          {{ idioma.nom_idioma }}
+        </button>
+      </mat-menu>
     </div>
-</div>
-<div class="buscar-sucursales-container container">
-    <div class="select-row">
-        <!-- Selección de Provincia -->
-        <div class="form-group">
-            <label for="provincia" i18n>Provincia</label>
-            <select id="provincia" class="form-control" (change)="onProvinciaChange($event)">
-                <option value="" disabled selected i18n>Seleccione una Provincia</option>
-                <option *ngFor="let provincia of provincias" [value]="provincia.cod_provincia">
-                    {{ provincia.nom_provincia }}
-                </option>
-            </select>
+  </mat-sidenav>
+
+  <!-- Contenido principal -->
+  <mat-sidenav-content>
+    <div class="buscar-sucursales-container">
+      <!-- Filtros -->
+      <div class="filters-container">
+        <div class="select-row">
+          <!-- Selección de Provincia -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label i18n>Provincia</mat-label>
+            <mat-select id="provincia" (selectionChange)="onProvinciaChange($event)">
+              <mat-option value="" disabled i18n>Seleccione una Provincia</mat-option>
+              <mat-option *ngFor="let provincia of provincias" [value]="provincia.cod_provincia">
+                {{ provincia.nom_provincia }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <!-- Selección de Localidad -->
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label i18n>Localidad</mat-label>
+            <mat-select id="localidad" (selectionChange)="onLocalidadChange($event)" [disabled]="!selectedProvincia">
+              <mat-option value="" disabled i18n>Seleccione una Localidad</mat-option>
+              <mat-option *ngFor="let localidad of localidades" [value]="localidad.nro_localidad">
+                {{ localidad.nom_localidad }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
         </div>
 
-        <!-- Selección de Localidad -->
-        <div class="form-group">
-            <label for="localidad" i18n>Localidad</label>
-            <select id="localidad" class="form-control" (change)="onLocalidadChange($event)"
-                [disabled]="!selectedProvincia">
-                <option value="" disabled selected i18n>Seleccione una Localidad</option>
-                <option *ngFor="let localidad of localidades" [value]="localidad.nro_localidad">
-                    {{ localidad.nom_localidad }}
-                </option>
-            </select>
-        </div>
-    </div>
+        <button mat-raised-button color="primary" (click)="mostrarSucursales()" [disabled]="!selectedLocalidad" class="search-button" i18n>
+          Buscar
+        </button>
+      </div>
 
-    <button (click)="mostrarSucursales()" class="btn btn-primary" style="background-color: #2D336B;"
-        [disabled]="!selectedLocalidad" i18n>Buscar</button>
-
-    <!-- Mostrar mensaje de espera si showSucursales es false -->
-    <div *ngIf="!showSucursales" class="container my-5 text-center">
+      <!-- Mensaje de espera -->
+      <div *ngIf="!showSucursales" class="text-center waiting-message">
         <img class="gif" src="gifs/waiting2.gif" alt="Cargando">
-        <p class="text-secondary mt-2" i18n>Esperando sucursales...</p>
-    </div>
+        <p class="text-secondary" i18n>Esperando sucursales...</p>
+      </div>
 
-    <div class="container my-5" *ngIf="showSucursales && sucursalesAgrupadas">
-        <h2 class="text-center mb-4" i18n>Sucursales Disponibles</h2>
-        <hr class="soft-divider">
+      <!-- Sucursales disponibles -->
+      <div class="sucursales-container" *ngIf="showSucursales && sucursalesAgrupadas">
+        <h2 class="text-center" i18n>Sucursales Disponibles</h2>
+        <mat-divider class="soft-divider"></mat-divider>
 
         <div *ngFor="let supermercado of sucursalesAgrupadas | keyvalue">
-            <!-- Supermercado -->
-            <h3 class="text-primary mt-4 text-center">{{ supermercado.key }}</h3>
+          <!-- Supermercado -->
+          <h3 class="text-center">{{ supermercado.key }}</h3>
 
-            <!-- Sección para las sucursales -->
-            <div class="d-flex flex-wrap justify-content-center gap-4">
-                <div *ngFor="let sucursal of supermercado.value" class="card-container fade-in">
-                    <div class="card shadow-sm border-0">
-                        <div class="card-body text-center">
-                            <h5 class="card-title text-primary">{{ sucursal.nom_sucursal }}</h5>
-                            <p class="card-text text-muted">{{ sucursal.calle }} {{ sucursal.nro_calle }}</p>
-                            <button class="btn btn-link p-0 text-secondary toggle-btn" (click)="toggleInfo(sucursal)">
-                                <i class="bi"
-                                    [ngClass]="{'bi-chevron-down': !sucursal.showMore, 'bi-chevron-up': sucursal.showMore}"></i>
-                            </button>
-                            <div class="additional-info" *ngIf="sucursal.showMore">
-                                <p i18n><strong>Horarios:</strong></p>
-                                <ul class="list-unstyled">
-                                    <li *ngFor="let horario of formatHorario(sucursal.horario_sucursal)">{{ horario }}
-                                    </li>
-                                </ul>
-                                <p i18n><strong>Teléfono:</strong> {{ sucursal.telefonos }}</p>
-                                <p i18n><strong>Servicios:</strong> {{ sucursal.servicios_disponibles }}</p>
-                            </div>
-                        </div>
-                    </div>
+          <!-- Sucursales -->
+          <div class="cards-container">
+            <mat-card *ngFor="let sucursal of supermercado.value" class="sucursal-card fade-in">
+              <mat-card-header>
+                <mat-card-title>{{ sucursal.nom_sucursal }}</mat-card-title>
+              </mat-card-header>
+              <mat-card-content>
+                <p>{{ sucursal.calle }} {{ sucursal.nro_calle }}</p>
+                <button mat-icon-button class="toggle-btn" (click)="toggleInfo(sucursal)">
+                  <mat-icon>{{ sucursal.showMore ? 'expand_less' : 'expand_more' }}</mat-icon>
+                </button>
+                <div class="additional-info" *ngIf="sucursal.showMore">
+                  <p i18n><strong>Horarios:</strong></p>
+                  <ul class="list-unstyled">
+                    <li *ngFor="let horario of formatHorario(sucursal.horario_sucursal)">{{ horario }}</li>
+                  </ul>
+                  <p i18n><strong>Teléfono:</strong> {{ sucursal.telefonos }}</p>
+                  <p i18n><strong>Servicios:</strong> {{ sucursal.servicios_disponibles }}</p>
                 </div>
-            </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
         </div>
+      </div>
+
+      <!-- Mensaje de no resultados -->
+      <div *ngIf="!showSucursales && sucursales.length === 0" class="text-center no-results">
+        <p i18n>No se encontraron sucursales en la zona seleccionada.</p>
+      </div>
     </div>
-
-
-
-
-    <div *ngIf="!showSucursales && sucursales.length === 0" class="container my-5 text-center">
-        <p class="text-secondary" i18n>No se encontraron sucursales en la zona seleccionada.</p>
-    </div>
-</div>
+  </mat-sidenav-content>
+</mat-sidenav-container>

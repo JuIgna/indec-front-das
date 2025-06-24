@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class ObtenerSucursalesService {
 
-  private apiUrl = 'http://localhost:8084/api/v1/indec/obtenerSucursalesLocalidad';
+  private apiUrl = 'http://localhost:8084/api/v1/indec/ubicaciones/obtenerSucursalesLocalidad';
   private username = 'indec123';
   private password = 'indec123';
 

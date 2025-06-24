@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class ProductService {
-  private apiUrl = 'http://localhost:8084/api/v1/indec/infoProductos';
+  private apiUrl = 'http://localhost:8084/api/v1/indec/productos/infoProductos';
   private username = 'indec123';
   private password = 'indec123';
 

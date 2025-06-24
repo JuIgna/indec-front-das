@@ -1,0 +1,26 @@
+<div class="container mt-4">
+  <h2>Supermercados</h2>
+  <table class="table table-bordered table-striped text-center align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>Nombre</th>
+        <th>Tipo</th>
+        <th *ngFor="let accion of acciones">{{ accion }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let super of supermercados">
+        <td>{{ super.razon_social }}</td>
+        <td>{{ super.tipo_servicio }}</td>
+        <td *ngFor="let accion of acciones">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            [attr.title]="'Actualizar ' + accion"
+          />
+          <label class="form-check-label"></label>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

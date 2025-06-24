@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class ObtenerIdiomasService {
 
-  private apiUrl = 'http://localhost:8084/api/v1/indec/obtenerIdiomas';
+  private apiUrl = 'http://localhost:8084/api/v1/indec/regionalizacion/obtenerIdiomas';
   private username = 'indec123';
   private password = 'indec123';
 

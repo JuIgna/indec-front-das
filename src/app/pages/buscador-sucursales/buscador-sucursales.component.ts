@@ -6,11 +6,34 @@ import { ObtenerProvinciasService } from '../../services/lugares/provincias/obte
 import { ObtenerLocalidadesService } from '../../services/lugares/localidades/obtener-localidades.service';
 import { ObtenerSucursalesService } from '../../services/lugares/sucursales/obtener-sucursales.service';
 import { ObtenerIdiomasService } from '../../services/idioma/obtenerIdiomas/obtener-idiomas.service'; 
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatIconModule } from '@angular/material/icon';
+import { MatListModule } from '@angular/material/list';
+import { MatSelect, MatSelectChange, MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatCardModule } from '@angular/material/card';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatMenuModule } from '@angular/material/menu';
 
 @Component({
   selector: 'app-buscador-sucursales',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatToolbarModule,
+    MatButtonModule,
+    MatSidenavModule,
+    MatIconModule,
+    MatListModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    MatCardModule,
+    MatProgressSpinnerModule,
+    MatMenuModule
+  ],
   templateUrl: './buscador-sucursales.component.html',
   styleUrls: ['./buscador-sucursales.component.css']
 })
@@ -121,32 +144,33 @@ goToPriceComparator() {
   this.router.navigate(['/home/comparador-productos']);
 }
 
-  onProvinciaChange(event: Event) {
-    this.cod_provincia = (event.target as HTMLSelectElement).value;
+  onProvinciaChange(event: MatSelectChange) {
+    console.log('Provincia seleccionada:', event.value);
+    this.cod_provincia = event.value;
     console.log(this.cod_provincia);
 
     if (this.cod_pais && this.cod_provincia) {
       this.obtenerLocalidadesService.getLocalidades(this.cod_pais, this.cod_provincia).subscribe(
-        (data) => {
-          this.localidades = data;
-          this.selectedProvincia = (event.target as HTMLSelectElement).value;
-          this.selectedLocalidad = null; // Reiniciar selección de localidad
-          console.log(this.localidades);
-        },
-        (error) => {
-          console.error('Error al obtener las localidades:', error);
-          alert('No se pudo obtener la lista de localidades. Verifique la consola para más detalles.');
-        }
+      (data) => {
+        this.localidades = data;
+        this.selectedProvincia = event.value;
+        this.selectedLocalidad = null; // Reiniciar selección de localidad
+        console.log(this.localidades);
+      },
+      (error) => {
+        console.error('Error al obtener las localidades:', error);
+        alert('No se pudo obtener la lista de localidades. Verifique la consola para más detalles.');
+      }
       );
     } else {
       console.error('El código de país o provincia no está definido');
     }
   }
 
-  onLocalidadChange(event: Event) {
-    this.nro_localidad = (event.target as HTMLSelectElement).value;
+  onLocalidadChange(event: MatSelectChange) {
+    this.nro_localidad = event.value;
     console.log(this.nro_localidad);
-    this.selectedLocalidad = (event.target as HTMLSelectElement).value;
+    this.selectedLocalidad = event.value;
   }
 
   sucursalesAgrupadas: { [key: string]: any[] } = {};
