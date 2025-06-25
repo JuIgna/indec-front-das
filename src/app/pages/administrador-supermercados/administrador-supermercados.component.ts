@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { supermercado } from '../../components/interfaces/supermercado';
+import { SupermercadoInterface } from '../../components/interfaces/supermercado';
 import { SupermercadosService } from '../../services/supermercados/supermercados.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -12,7 +12,7 @@ import { RouterModule } from '@angular/router';
   styleUrl: './administrador-supermercados.component.css'
 })
 export class AdministradorSupermercadosComponent {
-  supermercados: supermercado[] = [];
+  supermercados: SupermercadoInterface[] = [];
   acciones: String[] = ['Sucursales', 'Productos', 'Precios']
 
   constructor (

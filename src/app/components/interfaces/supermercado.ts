@@ -1,4 +1,4 @@
-export interface supermercado {
+export interface SupermercadoInterface {
     nro_supermercado: number;
     razon_social: string;
     cuit: string;

@@ -80,6 +80,18 @@
               </mat-option>
             </mat-select>
           </mat-form-field>
+
+
+          <mat-form-field appearance="outline" class="form-field" > 
+            <mat-label i18n>Supermercado</mat-label>
+            <mat-select id="supermercado" (selectionChange)="onSupermercadoChange($event)" multiple> 
+              <mat-option value="" i18n> Todos </mat-option>
+              <mat-option *ngFor="let supermercado of supermercados" [value]="supermercado.nro_supermercado">
+                {{ supermercado.razon_social }}
+              </mat-option>
+            </mat-select>  
+          
+          </mat-form-field>
         </div>
 
         <button mat-raised-button color="primary" (click)="mostrarSucursales()" [disabled]="!selectedLocalidad" class="search-button" i18n>

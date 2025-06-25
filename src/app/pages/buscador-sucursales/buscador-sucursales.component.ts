@@ -16,6 +16,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
+import { SupermercadosService } from '../../services/supermercados/supermercados.service';
+import { SupermercadoInterface } from '../../components/interfaces/supermercado';
 
 @Component({
   selector: 'app-buscador-sucursales',
@@ -48,11 +50,13 @@ export class BuscadorSucursalesComponent implements OnInit {
   paises: any[] = [];
   provincias: any[] = [];
   localidades: any[] = [];
+  supermercados: SupermercadoInterface[] = []
   sucursales: any[] = [];
 
   cod_pais = 'AR';
   cod_provincia: string | undefined;
   nro_localidad: string | undefined;
+  nro_supermercado: string | undefined;
 
   selectedLanguage: string = "";
   selectedLanguageName: string = "";
@@ -63,6 +67,7 @@ export class BuscadorSucursalesComponent implements OnInit {
     private obtenerProvinciasService: ObtenerProvinciasService,
     private obtenerLocalidadesService: ObtenerLocalidadesService,
     private obtenerSucursalesService: ObtenerSucursalesService,
+    private supermercadosService: SupermercadosService,
     private router: Router,
     private obtenerIdiomasService: ObtenerIdiomasService,
   ) {}
@@ -98,6 +103,20 @@ export class BuscadorSucursalesComponent implements OnInit {
         alert('No se pudo obtener la lista de idiomas.');
       }
     );
+
+    this.supermercadosService.getSupermercados().subscribe(
+      (data: SupermercadoInterface[]) => {
+        this.supermercados = data;
+        console.log('Supermercados cargados:', this.supermercados);
+      },
+      (error) => {
+        console.error('Error al obtener supermercados:', error);
+        alert('No se pudo obtener la lista de supermercados.');
+      }
+
+    )
+
+
 
     this.detectLanguage();
   }
@@ -172,6 +191,11 @@ goToPriceComparator() {
     console.log(this.nro_localidad);
     this.selectedLocalidad = event.value;
   }
+
+  onSupermercadoChange(event: MatSelectChange) {
+    this.nro_supermercado = event.value;
+    console.log(this.nro_supermercado);
+  } 
 
   sucursalesAgrupadas: { [key: string]: any[] } = {};
 
