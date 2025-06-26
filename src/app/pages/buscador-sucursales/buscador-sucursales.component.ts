@@ -18,6 +18,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
 import { SupermercadosService } from '../../services/supermercados/supermercados.service';
 import { SupermercadoInterface } from '../../components/interfaces/supermercado';
+import { SucursalInterface } from '../../components/interfaces/sucursal';
 
 @Component({
   selector: 'app-buscador-sucursales',
@@ -55,8 +56,8 @@ export class BuscadorSucursalesComponent implements OnInit {
 
   cod_pais = 'AR';
   cod_provincia: string | undefined;
-  nro_localidad: string | undefined;
-  nro_supermercado: string | undefined;
+  nro_localidad: string = "";
+  nro_supermercado: string[] = [];
 
   selectedLanguage: string = "";
   selectedLanguageName: string = "";
@@ -199,14 +200,20 @@ goToPriceComparator() {
 
   sucursalesAgrupadas: { [key: string]: any[] } = {};
 
+  saveSucursales () {
+    const sucursales =  this.obtenerSucursalesService.getSucursales(this.nro_localidad, this.nro_supermercado);
+    console.log('Sucursales guardadas:', sucursales);
+  }
+
   mostrarSucursales() {
     this.isLoading = true;
-    
-    if (this.nro_localidad) {
-        this.obtenerSucursalesService.getSucursales(this.nro_localidad).subscribe(
+
+    if (this.nro_localidad || this.nro_supermercado) {
+
+        this.obtenerSucursalesService.getSucursales(this.nro_localidad, this.nro_supermercado).subscribe(
             (data) => {
                 // Agrupar sucursales por supermercado
-                this.sucursalesAgrupadas = data.reduce((acc, sucursal) => {
+                this.sucursalesAgrupadas = data.reduce((acc: { [key: string]: any[] }, sucursal: any) => {
                     const nombreSupermercado = sucursal.nom_supermercado;
                     
                     if (!acc[nombreSupermercado]) {
@@ -219,7 +226,7 @@ goToPriceComparator() {
                     });
 
                     return acc;
-                }, {});
+                }, {} as { [key: string]: any[] });
 
                 this.showSucursales = true;
                 this.isLoading = false;
@@ -227,12 +234,12 @@ goToPriceComparator() {
             },
             (error) => {
                 console.error('Error al obtener las sucursales:', error);
-                alert('No se pudo obtener la lista de sucursales. Verifique la consola para más detalles.');
+                alert('No se pudo obtener la lista de sucursales.');
                 this.isLoading = false;
             }
         );
     } else {
-        alert('El nro de localidad es inválido');
+        alert('El nro de localidad o supermercados es invalido');
     }
 }
 
