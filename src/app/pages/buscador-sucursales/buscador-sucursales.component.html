@@ -1,14 +1,9 @@
 <!-- Barra de navegación -->
 <mat-toolbar color="primary" class="navbar">
-  <!-- Botón de Menú Lateral -->
   <button mat-icon-button (click)="toggleSidebar()">
     <mat-icon>menu</mat-icon>
   </button>
-
-  <!-- Título Centrado -->
   <span class="toolbar-title" i18n>Buscador de Sucursales</span>
-
-  <!-- Logo -->
   <img src="Logo_Indec.png" alt="Icono" class="logo" />
 </mat-toolbar>
 
@@ -20,14 +15,19 @@
 
 <!-- Menú Lateral -->
 <mat-sidenav-container>
-  <mat-sidenav #sidenav mode="over" [(opened)]="isSidebarOpen" (closed)="closeMenus()" class="sidebar">
+  <mat-sidenav
+    #sidenav
+    mode="over"
+    [(opened)]="isSidebarOpen"
+    (closed)="closeMenus()"
+    class="sidebar"
+  >
     <div class="sidenav-header">
       <button mat-icon-button class="close-btn" (click)="closeMenus()">
         <mat-icon>close</mat-icon>
       </button>
       <h4 i18n>Nuestros Servicios</h4>
     </div>
-    <!-- Opciones del menú -->
     <mat-nav-list>
       <a mat-list-item (click)="goToPriceComparator()" i18n>
         <mat-icon>bar_chart</mat-icon> Comparador de Precio
@@ -36,17 +36,27 @@
         <mat-icon>location_on</mat-icon> Buscar Sucursales
       </a>
     </mat-nav-list>
-
-    <!-- Selector de idioma -->
     <div class="language-selector">
       <label i18n for="language">Idioma:</label>
       <button mat-button [matMenuTriggerFor]="languageMenu">
-        <img [src]="'flags/' + selectedLanguage + '.png'" class="flag-icon" alt="Bandera">
+        <img
+          [src]="'flags/' + selectedLanguage + '.png'"
+          class="flag-icon"
+          alt="Bandera"
+        />
         {{ selectedLanguageName }}
       </button>
       <mat-menu #languageMenu="matMenu">
-        <button mat-menu-item *ngFor="let idioma of idiomas" (click)="changeLanguage(idioma.cod_idioma)">
-          <img [src]="'flags/' + idioma.cod_idioma + '.png'" class="flag-icon" alt="Bandera">
+        <button
+          mat-menu-item
+          *ngFor="let idioma of idiomas"
+          (click)="changeLanguage(idioma.cod_idioma)"
+        >
+          <img
+            [src]="'flags/' + idioma.cod_idioma + '.png'"
+            class="flag-icon"
+            alt="Bandera"
+          />
           {{ idioma.nom_idioma }}
         </button>
       </mat-menu>
@@ -59,89 +69,199 @@
       <!-- Filtros -->
       <div class="filters-container">
         <div class="select-row">
-          <!-- Selección de Provincia -->
           <mat-form-field appearance="outline" class="form-field">
             <mat-label i18n>Provincia</mat-label>
-            <mat-select id="provincia" (selectionChange)="onProvinciaChange($event)">
-              <mat-option value="" disabled i18n>Seleccione una Provincia</mat-option>
-              <mat-option *ngFor="let provincia of provincias" [value]="provincia.cod_provincia">
+            <mat-select
+              id="provincia"
+              (selectionChange)="onProvinciaChange($event)"
+            >
+              <mat-option value="" disabled i18n
+                >Seleccione una Provincia</mat-option
+              >
+              <mat-option
+                *ngFor="let provincia of provincias"
+                [value]="provincia.cod_provincia"
+              >
                 {{ provincia.nom_provincia }}
               </mat-option>
             </mat-select>
           </mat-form-field>
 
-          <!-- Selección de Localidad -->
           <mat-form-field appearance="outline" class="form-field">
             <mat-label i18n>Localidad</mat-label>
-            <mat-select id="localidad" (selectionChange)="onLocalidadChange($event)" [disabled]="!selectedProvincia">
-              <mat-option value="" disabled i18n>Seleccione una Localidad</mat-option>
-              <mat-option *ngFor="let localidad of localidades" [value]="localidad.nro_localidad">
+            <mat-select
+              id="localidad"
+              (selectionChange)="onLocalidadChange($event)"
+              [disabled]="!selectedProvincia"
+            >
+              <mat-option value="" disabled i18n
+                >Seleccione una Localidad</mat-option
+              >
+              <mat-option
+                *ngFor="let localidad of localidades"
+                [value]="localidad.nro_localidad"
+              >
                 {{ localidad.nom_localidad }}
               </mat-option>
             </mat-select>
           </mat-form-field>
 
-
-          <mat-form-field appearance="outline" class="form-field" > 
+          <mat-form-field appearance="outline" class="form-field">
             <mat-label i18n>Supermercado</mat-label>
-            <mat-select id="supermercado" (selectionChange)="onSupermercadoChange($event)" multiple> 
-              <mat-option value="" i18n> Todos </mat-option>
-              <mat-option *ngFor="let supermercado of supermercados" [value]="supermercado.nro_supermercado">
+            <mat-select
+              id="supermercado"
+              (selectionChange)="onSupermercadoChange($event)"
+              multiple
+            >
+              <mat-option value="" i18n>Todos</mat-option>
+              <mat-option
+                *ngFor="let supermercado of supermercados"
+                [value]="supermercado.nro_supermercado"
+              >
                 {{ supermercado.razon_social }}
               </mat-option>
-            </mat-select>  
-          
+            </mat-select>
           </mat-form-field>
         </div>
 
-        <button mat-raised-button color="primary" (click)="saveSucursales()" [disabled]="!selectedLocalidad" class="search-button" i18n>
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="saveSucursales()"
+          [disabled]="!selectedLocalidad"
+          class="search-button"
+          i18n
+        >
           Buscar
         </button>
       </div>
 
-      <!-- Mensaje de espera -->
-      <div *ngIf="!showSucursales" class="text-center waiting-message">
-        <img class="gif" src="gifs/waiting2.gif" alt="Cargando">
-        <p class="text-secondary" i18n>Esperando sucursales...</p>
-      </div>
+      <!-- Tabla de sucursales -->
+      <div *ngIf="showSucursales" class="table-container">
+        <table
+          mat-table
+          [dataSource]="dataSource"
+          multiTemplateDataRows
+          class="mat-elevation-z8"
+        >
+          <!-- Columna Supermercado -->
+          <ng-container matColumnDef="nom_supermercado">
+            <th mat-header-cell *matHeaderCellDef i18n>Supermercado</th>
+            <td mat-cell *matCellDef="let sucursal">
+              {{ sucursal.nom_supermercado }}
+            </td>
+          </ng-container>
 
-      <!-- Sucursales disponibles -->
-      <div class="sucursales-container" *ngIf="showSucursales && sucursalesAgrupadas">
-        <h2 class="text-center" i18n>Sucursales Disponibles</h2>
-        <mat-divider class="soft-divider"></mat-divider>
+          <!-- Columna Localidad -->
+          <ng-container matColumnDef="nom_localidad">
+            <th mat-header-cell *matHeaderCellDef i18n>Localidad</th>
+            <td mat-cell *matCellDef="let sucursal">
+              {{ sucursal.nom_localidad }}
+            </td>
+          </ng-container>
 
-        <div *ngFor="let supermercado of sucursalesAgrupadas | keyvalue">
-          <!-- Supermercado -->
-          <h3 class="text-center">{{ supermercado.key }}</h3>
+          <!-- Columna Nombre de Sucursal -->
+          <ng-container matColumnDef="nom_sucursal">
+            <th mat-header-cell *matHeaderCellDef i18n>Nombre Sucursal</th>
+            <td mat-cell *matCellDef="let sucursal">
+              {{ sucursal.nom_sucursal }}
+            </td>
+          </ng-container>
 
-          <!-- Sucursales -->
-          <div class="cards-container">
-            <mat-card *ngFor="let sucursal of supermercado.value" class="sucursal-card fade-in">
-              <mat-card-header>
-                <mat-card-title>{{ sucursal.nom_sucursal }}</mat-card-title>
-              </mat-card-header>
-              <mat-card-content>
-                <p>{{ sucursal.calle }} {{ sucursal.nro_calle }}</p>
-                <button mat-icon-button class="toggle-btn" (click)="toggleInfo(sucursal)">
-                  <mat-icon>{{ sucursal.showMore ? 'expand_less' : 'expand_more' }}</mat-icon>
-                </button>
-                <div class="additional-info" *ngIf="sucursal.showMore">
-                  <p i18n><strong>Horarios:</strong></p>
-                  <ul class="list-unstyled">
-                    <li *ngFor="let horario of formatHorario(sucursal.horario_sucursal)">{{ horario }}</li>
+          <!-- Columna Ubicación -->
+          <ng-container matColumnDef="ubicacion">
+            <th mat-header-cell *matHeaderCellDef i18n>Ubicación</th>
+            <td mat-cell *matCellDef="let sucursal">
+              {{ sucursal.calle }} {{ sucursal.nro_calle }},
+              {{ sucursal.nom_localidad }}
+            </td>
+          </ng-container>
+
+          <!-- Columna Expandir -->
+          <ng-container matColumnDef="expand">
+            <th mat-header-cell *matHeaderCellDef aria-label="row actions">
+              &nbsp;
+            </th>
+            <td mat-cell *matCellDef="let sucursal">
+              <button
+                mat-icon-button
+                aria-label="expand row"
+                (click)="
+                  expandedElement =
+                    expandedElement === sucursal ? null : sucursal
+                "
+              >
+                <mat-icon>{{
+                  expandedElement === sucursal ? "expand_less" : "expand_more"
+                }}</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <!-- Fila expandida -->
+          <ng-container matColumnDef="expandedDetail">
+            <td
+              mat-cell
+              *matCellDef="let sucursal"
+              [attr.colspan]="displayedColumns.length"
+            >
+              <div
+                class="sucursal-detail"
+                [@detailExpand]="
+                  sucursal == expandedElement ? 'expanded' : 'collapsed'
+                "
+              >
+                <div class="sucursal-info">
+                  <p>
+                    <strong i18n>Teléfonos:</strong> {{ sucursal.telefonos }}
+                  </p>
+                  <p>
+                    <strong i18n>Servicios Disponibles:</strong>
+                    {{ sucursal.servicios_disponibles }}
+                  </p>
+                  <p><strong i18n>Horarios:</strong></p>
+                  <ul>
+                    <li
+                      *ngFor="
+                        let horario of formatHorario(sucursal.horario_sucursal)
+                      "
+                    >
+                      {{ horario }}
+                    </li>
                   </ul>
-                  <p i18n><strong>Teléfono:</strong> {{ sucursal.telefonos }}</p>
-                  <p i18n><strong>Servicios:</strong> {{ sucursal.servicios_disponibles }}</p>
+                  <p>
+                    <strong i18n>Coordenadas:</strong> Lat:
+                    {{ sucursal.coord_latitud }}, Long:
+                    {{ sucursal.coord_longitud }}
+                  </p>
                 </div>
-              </mat-card-content>
-            </mat-card>
-          </div>
-        </div>
-      </div>
+              </div>
+            </td>
+          </ng-container>
 
-      <!-- Mensaje de no resultados -->
-      <div *ngIf="!showSucursales && sucursales.length === 0" class="text-center no-results">
-        <p i18n>No se encontraron sucursales en la zona seleccionada.</p>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr
+            mat-row
+            *matRowDef="let sucursal; columns: displayedColumns"
+            class="sucursal-row"
+            [class.expanded-row]="expandedElement === sucursal"
+          ></tr>
+          <tr
+            mat-row
+            *matRowDef="let sucursal; columns: ['expandedDetail']"
+            class="detail-row"
+          ></tr>
+        </table>
+
+        <mat-paginator
+          [pageSizeOptions]="[10, 20, 40]"
+          showFirstLastButtons
+        ></mat-paginator>
+
+        <!-- Mensaje de no resultados -->
+        <div *ngIf="sucursales.length === 0" class="text-center no-results">
+          <p i18n>No se encontraron sucursales en la zona seleccionada.</p>
+        </div>
       </div>
     </div>
   </mat-sidenav-content>

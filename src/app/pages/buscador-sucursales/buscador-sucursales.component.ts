@@ -1,14 +1,16 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { ObtenerPaisesService } from '../../services/lugares/paises/obtener-paises.service';
 import { ObtenerProvinciasService } from '../../services/lugares/provincias/obtener-provincias.service';
 import { ObtenerLocalidadesService } from '../../services/lugares/localidades/obtener-localidades.service';
 import { ObtenerSucursalesService } from '../../services/lugares/sucursales/obtener-sucursales.service';
-import { ObtenerIdiomasService } from '../../services/idioma/obtenerIdiomas/obtener-idiomas.service'; 
+import { ObtenerIdiomasService } from '../../services/idioma/obtenerIdiomas/obtener-idiomas.service';
+import { SupermercadosService } from '../../services/supermercados/supermercados.service';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatTable, MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatSelect, MatSelectChange, MatSelectModule } from '@angular/material/select';
@@ -16,9 +18,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
-import { SupermercadosService } from '../../services/supermercados/supermercados.service';
 import { SupermercadoInterface } from '../../components/interfaces/supermercado';
 import { SucursalInterface } from '../../components/interfaces/sucursal';
+import { animate, state, style, transition, trigger } from '@angular/animations';
+import { MatPaginator } from '@angular/material/paginator';
 
 @Component({
   selector: 'app-buscador-sucursales',
@@ -35,15 +38,24 @@ import { SucursalInterface } from '../../components/interfaces/sucursal';
     MatFormFieldModule,
     MatCardModule,
     MatProgressSpinnerModule,
-    MatMenuModule
+    MatMenuModule,
+    MatTableModule,
+    MatPaginator
   ],
   templateUrl: './buscador-sucursales.component.html',
-  styleUrls: ['./buscador-sucursales.component.css']
+  styleUrls: ['./buscador-sucursales.component.css'],
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed', style({ height: '0px', minHeight: '0' })),
+      state('expanded', style({ height: '*' })),
+      transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
+    ]),
+  ],
 })
 export class BuscadorSucursalesComponent implements OnInit {
   selectedPais: string | null = null;
   selectedProvincia: string | null = null;
-  selectedLocalidad: string | null = null;  
+  selectedLocalidad: string | null = null;
   isSidebarOpen = false;
   isLoading = false;
   showSucursales = false;
@@ -51,17 +63,24 @@ export class BuscadorSucursalesComponent implements OnInit {
   paises: any[] = [];
   provincias: any[] = [];
   localidades: any[] = [];
-  supermercados: SupermercadoInterface[] = []
-  sucursales: any[] = [];
+  supermercados: SupermercadoInterface[] = [];
+  sucursales: SucursalInterface[] = [];
 
   cod_pais = 'AR';
   cod_provincia: string | undefined;
-  nro_localidad: string = "";
+  nro_localidad: string = '';
   nro_supermercado: string[] = [];
 
-  selectedLanguage: string = "";
-  selectedLanguageName: string = "";
+  selectedLanguage: string = '';
+  selectedLanguageName: string = '';
   idiomas: any[] = [];
+
+  // Columnas de la tabla
+  displayedColumns: string[] = ['nom_supermercado', 'nom_localidad', 'nom_sucursal', 'ubicacion','expand'];
+  expandedElement: SucursalInterface | null = null;
+  dataSource = new MatTableDataSource<SucursalInterface>(this.sucursales);
+
+  @ViewChild(MatPaginator) paginator: MatPaginator | null = null;
 
   constructor(
     private buscadorService: ObtenerPaisesService,
@@ -70,16 +89,16 @@ export class BuscadorSucursalesComponent implements OnInit {
     private obtenerSucursalesService: ObtenerSucursalesService,
     private supermercadosService: SupermercadosService,
     private router: Router,
-    private obtenerIdiomasService: ObtenerIdiomasService,
+    private obtenerIdiomasService: ObtenerIdiomasService
   ) {}
 
   ngOnInit(): void {
     this.obtenerProvinciasService.getProvincias(this.cod_pais).subscribe(
       (data) => {
-        this.provincias = data;// Reiniciar selección de localidad
+        this.provincias = data;
         console.log(this.provincias);
-        this.selectedProvincia = null; // Reiniciar selección de provincia
-        this.selectedLocalidad = null; // Reiniciar selección de localidad
+        this.selectedProvincia = null;
+        this.selectedLocalidad = null;
       },
       (error) => {
         console.error('Error al obtener las provincias:', error);
@@ -89,15 +108,12 @@ export class BuscadorSucursalesComponent implements OnInit {
 
     this.obtenerIdiomasService.getIdiomas().subscribe(
       (data) => {
-        this.idiomas = data;  // Guardar idiomas en la lista
+        this.idiomas = data;
         console.log('Idiomas cargados:', this.idiomas);
-
-        
-          const idioma = this.idiomas.find(lang => lang.cod_idioma === this.selectedLanguage);
-          if (idioma) {
-            this.selectedLanguageName = idioma.nom_idioma;
-          }
-        
+        const idioma = this.idiomas.find((lang) => lang.cod_idioma === this.selectedLanguage);
+        if (idioma) {
+          this.selectedLanguageName = idioma.nom_idioma;
+        }
       },
       (error) => {
         console.error('Error al obtener idiomas:', error);
@@ -114,13 +130,15 @@ export class BuscadorSucursalesComponent implements OnInit {
         console.error('Error al obtener supermercados:', error);
         alert('No se pudo obtener la lista de supermercados.');
       }
-
-    )
-
-
+    );
 
     this.detectLanguage();
   }
+
+  ngAfterViewInit() {
+    this.dataSource.paginator = this.paginator;
+  }
+  
 
   detectLanguage(): void {
     const currentPort = window.location.port;
@@ -128,15 +146,10 @@ export class BuscadorSucursalesComponent implements OnInit {
     console.log(this.selectedLanguage);
   }
 
-
-  // Cambia el idioma de la aplicación y redirige al puerto correspondiente
   changeLanguage(language: string): void {
     this.selectedLanguage = language;
-
-    // Determina el puerto según el idioma
     const currentHost = window.location.hostname;
     const newPort = language === 'en' ? '4201' : '4200';
-
     if (window.location.port !== newPort) {
       window.location.href = `${window.location.protocol}//${currentHost}:${newPort}`;
     }
@@ -150,19 +163,20 @@ export class BuscadorSucursalesComponent implements OnInit {
     this.isSidebarOpen = false;
   }
 
-  goToHome() { // Oculta el contenedor
+  goToHome() {
     this.isSidebarOpen = !this.isSidebarOpen;
     this.router.navigate(['/home']);
   }
-goToBranches() {// Oculta el contenedor
-  this.isSidebarOpen = !this.isSidebarOpen;
-  this.router.navigate(['/home/buscador-sucursales']);
-}
 
-goToPriceComparator() {
-  this.isSidebarOpen = !this.isSidebarOpen;
-  this.router.navigate(['/home/comparador-productos']);
-}
+  goToBranches() {
+    this.isSidebarOpen = !this.isSidebarOpen;
+    this.router.navigate(['/home/buscador-sucursales']);
+  }
+
+  goToPriceComparator() {
+    this.isSidebarOpen = !this.isSidebarOpen;
+    this.router.navigate(['/home/comparador-productos']);
+  }
 
   onProvinciaChange(event: MatSelectChange) {
     console.log('Provincia seleccionada:', event.value);
@@ -171,16 +185,16 @@ goToPriceComparator() {
 
     if (this.cod_pais && this.cod_provincia) {
       this.obtenerLocalidadesService.getLocalidades(this.cod_pais, this.cod_provincia).subscribe(
-      (data) => {
-        this.localidades = data;
-        this.selectedProvincia = event.value;
-        this.selectedLocalidad = null; // Reiniciar selección de localidad
-        console.log(this.localidades);
-      },
-      (error) => {
-        console.error('Error al obtener las localidades:', error);
-        alert('No se pudo obtener la lista de localidades. Verifique la consola para más detalles.');
-      }
+        (data) => {
+          this.localidades = data;
+          this.selectedProvincia = event.value;
+          this.selectedLocalidad = null;
+          console.log(this.localidades);
+        },
+        (error) => {
+          console.error('Error al obtener las localidades:', error);
+          alert('No se pudo obtener la lista de localidades. Verifique la consola para más detalles.');
+        }
       );
     } else {
       console.error('El código de país o provincia no está definido');
@@ -196,71 +210,42 @@ goToPriceComparator() {
   onSupermercadoChange(event: MatSelectChange) {
     this.nro_supermercado = event.value;
     console.log(this.nro_supermercado);
-  } 
-
-  sucursalesAgrupadas: { [key: string]: any[] } = {};
-
-  saveSucursales () {
-    const sucursales =  this.obtenerSucursalesService.getSucursales(this.nro_localidad, this.nro_supermercado);
-    console.log('Sucursales guardadas:', sucursales);
   }
 
-  mostrarSucursales() {
+  saveSucursales() {
     this.isLoading = true;
+    this.showSucursales = false;
+    this.sucursales = [];
 
-    if (this.nro_localidad || this.nro_supermercado) {
+    this.obtenerSucursalesService.getSucursales(this.nro_localidad, this.nro_supermercado).subscribe(
+      (data: SucursalInterface[]) => {
+        this.sucursales = data;
+        this.dataSource.data = this.sucursales;
+        this.showSucursales = true;
+        this.isLoading = false;
+        console.log('Sucursales obtenidas:', this.sucursales);
+      },
+      (error) => {
+        console.error('Error al obtener sucursales:', error);
+        this.isLoading = false;
+        this.showSucursales = true;
+        alert('No se pudo obtener la lista de sucursales. Verifique la consola para más detalles.');
+      }
+    );
+  }
 
-        this.obtenerSucursalesService.getSucursales(this.nro_localidad, this.nro_supermercado).subscribe(
-            (data) => {
-                // Agrupar sucursales por supermercado
-                this.sucursalesAgrupadas = data.reduce((acc: { [key: string]: any[] }, sucursal: any) => {
-                    const nombreSupermercado = sucursal.nom_supermercado;
-                    
-                    if (!acc[nombreSupermercado]) {
-                        acc[nombreSupermercado] = [];
-                    }
+  formatHorario(horario: string): string[] {
+    if (!horario) return [];
 
-                    acc[nombreSupermercado].push({
-                        ...sucursal,
-                        showMore: false // Agregamos el flag para expandir info
-                    });
+    const diasOrdenados = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
-                    return acc;
-                }, {} as { [key: string]: any[] });
-
-                this.showSucursales = true;
-                this.isLoading = false;
-                console.log(this.sucursalesAgrupadas);
-            },
-            (error) => {
-                console.error('Error al obtener las sucursales:', error);
-                alert('No se pudo obtener la lista de sucursales.');
-                this.isLoading = false;
-            }
-        );
-    } else {
-        alert('El nro de localidad o supermercados es invalido');
-    }
-}
-
-
-  toggleInfo(sucursal: any): void {
-    sucursal.showMore = !sucursal.showMore;
-}
-
-formatHorario(horario: string): string[] {
-  if (!horario) return [];
-
-  const diasOrdenados = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
-
-  return horario
+    return horario
       .split(',')
-      .map(h => h.trim()) // Limpia espacios
+      .map((h) => h.trim())
       .sort((a, b) => {
-          const diaA = diasOrdenados.indexOf(a.split(':')[0]);
-          const diaB = diasOrdenados.indexOf(b.split(':')[0]);
-          return diaA - diaB;
+        const diaA = diasOrdenados.indexOf(a.split(':')[0]);
+        const diaB = diasOrdenados.indexOf(b.split(':')[0]);
+        return diaA - diaB;
       });
-}
-
+  }
 }
