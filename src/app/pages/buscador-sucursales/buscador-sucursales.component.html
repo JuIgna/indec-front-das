@@ -15,13 +15,7 @@
 
 <!-- Menú Lateral -->
 <mat-sidenav-container>
-  <mat-sidenav
-    #sidenav
-    mode="over"
-    [(opened)]="isSidebarOpen"
-    (closed)="closeMenus()"
-    class="sidebar"
-  >
+  <mat-sidenav #sidenav mode="over" [(opened)]="isSidebarOpen" (closed)="closeMenus()" class="sidebar">
     <div class="sidenav-header">
       <button mat-icon-button class="close-btn" (click)="closeMenus()">
         <mat-icon>close</mat-icon>
@@ -39,24 +33,12 @@
     <div class="language-selector">
       <label i18n for="language">Idioma:</label>
       <button mat-button [matMenuTriggerFor]="languageMenu">
-        <img
-          [src]="'flags/' + selectedLanguage + '.png'"
-          class="flag-icon"
-          alt="Bandera"
-        />
+        <img [src]="'flags/' + selectedLanguage + '.png'" class="flag-icon" alt="Bandera" />
         {{ selectedLanguageName }}
       </button>
       <mat-menu #languageMenu="matMenu">
-        <button
-          mat-menu-item
-          *ngFor="let idioma of idiomas"
-          (click)="changeLanguage(idioma.cod_idioma)"
-        >
-          <img
-            [src]="'flags/' + idioma.cod_idioma + '.png'"
-            class="flag-icon"
-            alt="Bandera"
-          />
+        <button mat-menu-item *ngFor="let idioma of idiomas" (click)="changeLanguage(idioma.cod_idioma)">
+          <img [src]="'flags/' + idioma.cod_idioma + '.png'" class="flag-icon" alt="Bandera" />
           {{ idioma.nom_idioma }}
         </button>
       </mat-menu>
@@ -71,17 +53,9 @@
         <div class="select-row">
           <mat-form-field appearance="outline" class="form-field">
             <mat-label i18n>Provincia</mat-label>
-            <mat-select
-              id="provincia"
-              (selectionChange)="onProvinciaChange($event)"
-            >
-              <mat-option value="" disabled i18n
-                >Seleccione una Provincia</mat-option
-              >
-              <mat-option
-                *ngFor="let provincia of provincias"
-                [value]="provincia.cod_provincia"
-              >
+            <mat-select id="provincia" (selectionChange)="onProvinciaChange($event)">
+              <mat-option value="" disabled i18n>Seleccione una Provincia</mat-option>
+              <mat-option *ngFor="let provincia of provincias" [value]="provincia.cod_provincia">
                 {{ provincia.nom_provincia }}
               </mat-option>
             </mat-select>
@@ -89,18 +63,9 @@
 
           <mat-form-field appearance="outline" class="form-field">
             <mat-label i18n>Localidad</mat-label>
-            <mat-select
-              id="localidad"
-              (selectionChange)="onLocalidadChange($event)"
-              [disabled]="!selectedProvincia"
-            >
-              <mat-option value="" disabled i18n
-                >Seleccione una Localidad</mat-option
-              >
-              <mat-option
-                *ngFor="let localidad of localidades"
-                [value]="localidad.nro_localidad"
-              >
+            <mat-select id="localidad" (selectionChange)="onLocalidadChange($event)" [disabled]="!selectedProvincia">
+              <mat-option value="" disabled i18n>Seleccione una Localidad</mat-option>
+              <mat-option *ngFor="let localidad of localidades" [value]="localidad.nro_localidad">
                 {{ localidad.nom_localidad }}
               </mat-option>
             </mat-select>
@@ -108,45 +73,30 @@
 
           <mat-form-field appearance="outline" class="form-field">
             <mat-label i18n>Supermercado</mat-label>
-            <mat-select
-              id="supermercado"
-              (selectionChange)="onSupermercadoChange($event)"
-              multiple
-            >
-              <mat-option value="" i18n>Todos</mat-option>
-              <mat-option
-                *ngFor="let supermercado of supermercados"
-                [value]="supermercado.nro_supermercado"
-              >
+            <mat-select id="supermercado" (selectionChange)="onSupermercadoChange($event)" multiple>
+              <mat-option *ngFor="let supermercado of supermercados" [value]="supermercado.nro_supermercado">
                 {{ supermercado.razon_social }}
               </mat-option>
             </mat-select>
           </mat-form-field>
         </div>
 
-        <button
-          mat-raised-button
-          color="primary"
-          (click)="saveSucursales()"
-          [disabled]="!selectedLocalidad"
-          class="search-button"
-          i18n
-        >
+        <button mat-raised-button color="primary" (click)="saveSucursales()" [disabled]="!selectedLocalidad"
+          class="search-button" i18n>
           Buscar
         </button>
       </div>
 
+
+
       <!-- Tabla de sucursales -->
       <div *ngIf="showSucursales" class="table-container">
-        <table
-          mat-table
-          [dataSource]="dataSource"
-          multiTemplateDataRows
-          class="mat-elevation-z8"
-        >
+        <table mat-table [dataSource]="dataSource" multiTemplateDataRows class="mat-elevation-z8">
           <!-- Columna Supermercado -->
           <ng-container matColumnDef="nom_supermercado">
-            <th mat-header-cell *matHeaderCellDef i18n>Supermercado</th>
+            <th mat-header-cell *matHeaderCellDef i18n class="header-bold">
+              Supermercado
+            </th>
             <td mat-cell *matCellDef="let sucursal">
               {{ sucursal.nom_supermercado }}
             </td>
@@ -154,7 +104,9 @@
 
           <!-- Columna Localidad -->
           <ng-container matColumnDef="nom_localidad">
-            <th mat-header-cell *matHeaderCellDef i18n>Localidad</th>
+            <th mat-header-cell *matHeaderCellDef i18n class="header-bold">
+              Localidad
+            </th>
             <td mat-cell *matCellDef="let sucursal">
               {{ sucursal.nom_localidad }}
             </td>
@@ -162,7 +114,9 @@
 
           <!-- Columna Nombre de Sucursal -->
           <ng-container matColumnDef="nom_sucursal">
-            <th mat-header-cell *matHeaderCellDef i18n>Nombre Sucursal</th>
+            <th mat-header-cell *matHeaderCellDef i18n class="header-bold">
+              Nombre Sucursal
+            </th>
             <td mat-cell *matCellDef="let sucursal">
               {{ sucursal.nom_sucursal }}
             </td>
@@ -170,7 +124,9 @@
 
           <!-- Columna Ubicación -->
           <ng-container matColumnDef="ubicacion">
-            <th mat-header-cell *matHeaderCellDef i18n>Ubicación</th>
+            <th mat-header-cell *matHeaderCellDef i18n class="header-bold">
+              Ubicación
+            </th>
             <td mat-cell *matCellDef="let sucursal">
               {{ sucursal.calle }} {{ sucursal.nro_calle }},
               {{ sucursal.nom_localidad }}
@@ -183,34 +139,25 @@
               &nbsp;
             </th>
             <td mat-cell *matCellDef="let sucursal">
-              <button
-                mat-icon-button
-                aria-label="expand row"
-                (click)="
+              <button mat-icon-button aria-label="expand row" (click)="
                   expandedElement =
                     expandedElement === sucursal ? null : sucursal
-                "
-              >
-                <mat-icon>{{
+                ">
+                <mat-icon>
+                  {{
                   expandedElement === sucursal ? "expand_less" : "expand_more"
-                }}</mat-icon>
+                  }}
+                </mat-icon>
               </button>
             </td>
           </ng-container>
 
           <!-- Fila expandida -->
           <ng-container matColumnDef="expandedDetail">
-            <td
-              mat-cell
-              *matCellDef="let sucursal"
-              [attr.colspan]="displayedColumns.length"
-            >
-              <div
-                class="sucursal-detail"
-                [@detailExpand]="
+            <td mat-cell *matCellDef="let sucursal" [attr.colspan]="displayedColumns.length">
+              <div class="sucursal-detail" [@detailExpand]="
                   sucursal == expandedElement ? 'expanded' : 'collapsed'
-                "
-              >
+                ">
                 <div class="sucursal-info">
                   <p>
                     <strong i18n>Teléfonos:</strong> {{ sucursal.telefonos }}
@@ -221,11 +168,9 @@
                   </p>
                   <p><strong i18n>Horarios:</strong></p>
                   <ul>
-                    <li
-                      *ngFor="
+                    <li *ngFor="
                         let horario of formatHorario(sucursal.horario_sucursal)
-                      "
-                    >
+                      ">
                       {{ horario }}
                     </li>
                   </ul>
@@ -240,29 +185,18 @@
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr
-            mat-row
-            *matRowDef="let sucursal; columns: displayedColumns"
-            class="sucursal-row"
-            [class.expanded-row]="expandedElement === sucursal"
-          ></tr>
-          <tr
-            mat-row
-            *matRowDef="let sucursal; columns: ['expandedDetail']"
-            class="detail-row"
-          ></tr>
-        </table>
+          <tr mat-row *matRowDef="let sucursal; columns: displayedColumns" class="sucursal-row"
+            [class.expanded-row]="expandedElement === sucursal"></tr>
 
-        <mat-paginator
-          [pageSizeOptions]="[10, 20, 40]"
-          showFirstLastButtons
-        ></mat-paginator>
+          <tr mat-row *matRowDef="let sucursal; columns: ['expandedDetail']" class="detail-row"></tr>
+        </table>
 
         <!-- Mensaje de no resultados -->
         <div *ngIf="sucursales.length === 0" class="text-center no-results">
           <p i18n>No se encontraron sucursales en la zona seleccionada.</p>
         </div>
       </div>
+      <mat-paginator *ngIf="sucursales.length > 0" [pageSizeOptions]="[5, 10, 20]" showFirstLastButtons></mat-paginator>
     </div>
   </mat-sidenav-content>
 </mat-sidenav-container>
