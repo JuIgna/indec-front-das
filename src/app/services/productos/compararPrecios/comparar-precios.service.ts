@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 })
 export class CompararPreciosService {
 
-  private apiUrl = 'http://localhost:8084/api/v1/indec/compararPrecios';
+  private apiUrl = 'http://localhost:8084/api/v1/indec/precios/compararPrecios';
   private username = 'indec123';
   private password = 'indec123';
 

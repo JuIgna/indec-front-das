@@ -12,11 +12,13 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^18.2.0",
+    "@angular/animations": "^18.2.13",
+    "@angular/cdk": "^18.2.14",
     "@angular/common": "^18.2.0",
     "@angular/compiler": "^18.2.0",
     "@angular/core": "^18.2.0",
     "@angular/forms": "^18.2.0",
+    "@angular/material": "^18.2.14",
     "@angular/platform-browser": "^18.2.0",
     "@angular/platform-browser-dynamic": "^18.2.0",
     "@angular/router": "^18.2.0",
@@ -24,6 +26,7 @@
     "bootstrap-icons": "^1.11.3",
     "indec-front2": "file:",
     "rxjs": "~7.8.0",
+    "sweetalert2": "^11.22.2",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.10"
   },

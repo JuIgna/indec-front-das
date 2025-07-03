@@ -17,7 +17,10 @@ export class HomePageComponent implements OnInit {
   ngOnInit() {
     setTimeout(() => {
       this.showSplash = false;
-      this.goToPriceComparator();
+      // Solo redirigir si la ruta actual es exactamente '/home'
+      if (this.router.url === '/home') {
+        this.goToPriceComparator();
+      }
     }, 2000); // 2 segundos de splash
   }
 

@@ -291,4 +291,8 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     this.productosComparadosService.setProductosComparados(this.cartItems);
     this.router.navigate(['/home/comparador-productos/resultados-comparador']);
   }
+
+  goToAdminSupermercados() {
+    this.router.navigate(['/home/administrador-supermercados']);
+  }
 }
