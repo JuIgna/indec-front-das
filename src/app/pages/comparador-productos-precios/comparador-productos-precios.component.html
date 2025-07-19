@@ -1,228 +1,408 @@
-<nav class="navbar navbar-expand-lg navbar-light">
-    <div class="container-fluid">
-        <!-- Botón de Menú Lateral -->
-        <button class="btn btn-light me-3" (click)="toggleSidebar()">
-            <i class="bi bi-list"></i>
-        </button>
+<!-- Toolbar/Navbar -->
+<mat-toolbar color="primary">
+  <!-- Botón de Menú Lateral -->
+  <button mat-icon-button (click)="toggleSidebar()">
+    <mat-icon>menu</mat-icon>
+  </button>
 
-        <!-- Título Centrado -->
-        <span class="navbar-brand mx-auto" id="titulo" i18n>Indec Comparador de Precios</span>
+  <!-- Título Centrado -->
+  <span class="toolbar-title" i18n>Indec Comparador de Precios</span>
 
-        <!-- Ícono de Carrito con contador -->
-        <button class="btn btn-light cart-button" (click)="toggleCart()">
-            <i class="bi bi-cart"></i>
-            <span *ngIf="cartItems.length > 0" class="cart-counter">{{ cartItems.length }}</span>
-        </button>
-    </div>
-</nav>
+  <!-- Spacer para empujar el carrito a la derecha -->
+  <span class="toolbar-spacer"></span>
+
+  <!-- Ícono de Carrito con contador -->
+  <button mat-icon-button (click)="toggleCart()" class="cart-button">
+    <mat-icon [matBadge]="cartItems.length > 0 ? cartItems.length : null" 
+              matBadgeColor="warn" 
+              matBadgeSize="small">shopping_cart</mat-icon>
+  </button>
+</mat-toolbar>
 
 <!-- Menú Lateral -->
-<div class="sidebar" [class.open]="isSidebarOpen">
-    <button class="close-btn" (click)="closeMenus()"><i class="bi bi-x"></i></button>
-    <h4 i18n>Nuestros Servicios</h4>
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav #sidenav [opened]="isSidebarOpen" mode="over" position="start" (closedStart)="closeMenus()">
+    <mat-toolbar color="accent">
+      <span i18n>Nuestros Servicios</span>
+      <span class="toolbar-spacer"></span>
+      <button mat-icon-button (click)="closeMenus()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-toolbar>
 
-    <!-- Opciones del menú -->
-    <ul class="list-unstyled mt-3">
-        <li>
-            <button class="btn btn-light w-100 btn-menu" (click)="goToPriceComparator()" i18n>
-                <i class="bi bi-bar-chart"></i> Comparador de Precio
-            </button>
-        </li>
-        <li>
-            <button class="btn btn-light w-100 btn-menu" (click)="goToBranches()" i18n>
-                <i class="bi bi-geo-alt"></i> Buscar Sucursales
-            </button>
-        </li>
-        <li>
-            <button class="btn btn-light w-100 btn-menu" (click)="goToAdminSupermercados()" i18n>
-                <i class="bi bi-shop"></i> Administrador de Supermercados
-            </button>
-        </li>
-    </ul>
+    <mat-nav-list>
+      <mat-list-item (click)="goToPriceComparator()">
+        <mat-icon matListIcon>bar_chart</mat-icon>
+        <span i18n>Comparador de Precio</span>
+      </mat-list-item>
+      <mat-list-item (click)="goToBranches()">
+        <mat-icon matListIcon>location_on</mat-icon>
+        <span i18n>Buscar Sucursales</span>
+      </mat-list-item>
+      <mat-list-item (click)="goToAdminSupermercados()">
+        <mat-icon matListIcon>store</mat-icon>
+        <span i18n>Administrador de Supermercados</span>
+      </mat-list-item>
+    </mat-nav-list>
 
     <!-- Selector de idioma -->
-    <div class="language-selector mt-3">
-        <label i18n for="language">Idioma:</label>
-        <div class="dropdown">
-            <button class="btn btn-light dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown"
-                aria-expanded="false">
-                <img [src]="'flags/' + selectedLanguage + '.png'" class="flag-icon"> {{ selectedLanguageName }}
-            </button>
-            <ul class="dropdown-menu" aria-labelledby="languageDropdown">
-                <li *ngFor="let idioma of idiomas">
-                    <!-- Elimina href="#" y usa (click) para llamar a la función changeLanguage -->
-                    <a class="dropdown-item" (click)="changeLanguage(idioma.cod_idioma)">
-                        <img [src]="'flags/' + idioma.cod_idioma + '.png'" class="flag-icon"> {{ idioma.nom_idioma }}
-                    </a>
-                </li>
-            </ul>
-        </div>
+    <div class="language-selector">
+      <mat-form-field appearance="fill">
+        <mat-label i18n>Idioma</mat-label>
+        <mat-select [(value)]="selectedLanguage" (selectionChange)="changeLanguage($event.value)">
+          <mat-option *ngFor="let idioma of idiomas" [value]="idioma.cod_idioma">
+            <img [src]="'flags/' + idioma.cod_idioma + '.png'" class="flag-icon"> 
+            {{ idioma.nom_idioma }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
     </div>
+  </mat-sidenav>
 
+  <!-- Carrito -->
+  <mat-sidenav #cartSidenav [opened]="isCartOpen" mode="over" position="end" (closedStart)="closeMenus()">
+    <mat-toolbar color="accent">
+      <span i18n>Carrito</span>
+      <span class="toolbar-spacer"></span>
+      <button mat-icon-button (click)="closeMenus()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-toolbar>
 
-</div>
-
-
-<div *ngIf="isSidebarOpen || isCartOpen" class="overlay" (click)="closeMenus()"></div>
-<!-- Carrito -->
-<div class="cart-sidebar" [class.open]="isCartOpen">
-    <button class="close-btn" (click)="closeMenus()"><i class="bi bi-x"></i></button>
-    <h4 i18n>Carrito</h4>
-    <div *ngIf="cartItems.length > 0; else emptyCart">
-        <ul class="list-group">
-            <li *ngFor="let product of cartItems" class="list-group-item d-flex align-items-center">
-                <img [src]="product.imagen" class="cart-img me-2" alt="Imagen del producto">
-                <div class="cart-details flex-grow-1">
-                    <strong>{{ product.nom_producto }}</strong>
-                </div>
-                <button (click)="borrarDelCarrito(product)" class="btn btn-danger btn-sm">
-                    <i class="bi bi-cart-dash"></i>
-                </button>
-            </li>
-        </ul>
+    <div class="cart-content">
+      <div *ngIf="cartItems.length > 0; else emptyCart">
+        <mat-list>
+          <mat-list-item *ngFor="let product of cartItems">
+            <img matListAvatar [src]="product.imagen" alt="Imagen del producto">
+            <div matLine>
+              <strong>{{ product.nom_producto }}</strong>
+            </div>
+            <button mat-icon-button color="warn" (click)="borrarDelCarrito(product)">
+              <mat-icon>remove_shopping_cart</mat-icon>
+            </button>
+          </mat-list-item>
+        </mat-list>
 
         <!-- Botón para vaciar el carrito -->
-        <button class="btn btn-warning mt-3 w-100" (click)="limpiarCarrito()" i18n>
-            <i class="bi bi-trash"></i> Vaciar Carrito
+        <button mat-raised-button color="warn" class="full-width-btn" (click)="limpiarCarrito()" i18n>
+          <mat-icon>delete</mat-icon>
+          Vaciar Carrito
         </button>
 
-        <button class="btn btn-success mt-3 w-100" id="btn-comparar" (click)="goToComparador()" i18n>
-            Comparar Precios
+        <button mat-raised-button color="primary" class="full-width-btn" (click)="iniciarComparacion()" i18n>
+          Comparar Precios
         </button>
-    </div>
-    <ng-template #emptyCart>
-        <p class="text-center text-muted" i18n>El carrito está vacío.</p>
-    </ng-template>
-</div>
-
-
-
-<!-- Loader -->
-<div *ngIf="isLoading" class="loading-overlay">
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden" i18n>Cargando...</span>
-    </div>
-    <p i18n>Cargando productos...</p>
-</div>
-
-<!-- Lista de Productos (Solo se muestra cuando isLoading es false) -->
-<div *ngIf="!isLoading">
-    <div class="product-list">
-        <h2 style="text-align: center;" i18n>Lista de Productos</h2>
-
-        <!-- Buscador -->
-        <div class="mb-3">
-            <input type="text" class="form-control" i18n-placeholder placeholder="Buscar productos..."
-                [(ngModel)]="searchTerm" />
+      </div>
+      <ng-template #emptyCart>
+        <div class="empty-cart">
+          <mat-icon>shopping_cart</mat-icon>
+          <p i18n>El carrito está vacío.</p>
         </div>
+      </ng-template>
+    </div>
+  </mat-sidenav>
 
-        <!-- Filtros -->
-        <div class="row mb-3">
+  <!-- Contenido Principal -->
+  <mat-sidenav-content>
+    <!-- Loader -->
+    <div *ngIf="isLoading" class="loading-overlay">
+      <mat-spinner diameter="60"></mat-spinner>
+      <p i18n>Cargando productos...</p>
+    </div>
+
+    <!-- Vista de Lista de Productos -->
+    <div *ngIf="!isLoading && !mostrarComparacion" class="product-container">
+      <mat-card class="filter-card">
+        <mat-card-header>
+          <mat-card-title i18n>Lista de Productos</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <!-- Buscador -->
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label i18n>Buscar productos...</mat-label>
+            <input matInput [(ngModel)]="searchTerm">
+            <mat-icon matSuffix>search</mat-icon>
+          </mat-form-field>
+
+          <!-- Filtros -->
+          <div class="filters-container">
             <!-- Categoría -->
-            <div class="col-md-3">
-                <label for="categoria" i18n>Categoría</label>
-                <select id="categoria" class="form-control" (change)="filtrarProductos()"
-                    [(ngModel)]="filtroSeleccionado.categoria">
-                    <option value="" i18n>Todas</option>
-                    <option *ngFor="let cat of categoriasDisponibles" [value]="cat">{{ cat }}</option>
-                </select>
-            </div>
+            <mat-form-field appearance="outline">
+              <mat-label i18n>Categoría</mat-label>
+              <mat-select [(ngModel)]="filtroSeleccionado.categoria" (selectionChange)="filtrarProductos()">
+                <mat-option value="" i18n>Todas</mat-option>
+                <mat-option *ngFor="let cat of categoriasDisponibles" [value]="cat">{{ cat }}</mat-option>
+              </mat-select>
+            </mat-form-field>
 
             <!-- Marca -->
-            <div class="col-md-3">
-                <label for="marca" i18n>Marca</label>
-                <select id="marca" class="form-control" (change)="filtrarProductos()"
-                    [(ngModel)]="filtroSeleccionado.marca">
-                    <option value="" i18n>Todas</option>
-                    <option *ngFor="let marca of marcasDisponibles" [value]="marca">{{ marca }}</option>
-                </select>
-            </div>
+            <mat-form-field appearance="outline">
+              <mat-label i18n>Marca</mat-label>
+              <mat-select [(ngModel)]="filtroSeleccionado.marca" (selectionChange)="filtrarProductos()">
+                <mat-option value="" i18n>Todas</mat-option>
+                <mat-option *ngFor="let marca of marcasDisponibles" [value]="marca">{{ marca }}</mat-option>
+              </mat-select>
+            </mat-form-field>
 
             <!-- Rubro -->
-            <div class="col-md-3">
-                <label for="rubro" i18n>Rubro</label>
-                <select id="rubro" class="form-control" (change)="filtrarProductos()"
-                    [(ngModel)]="filtroSeleccionado.rubro">
-                    <option value="" i18n>Todos</option>
-                    <option *ngFor="let rubro of rubrosDisponibles" [value]="rubro">{{ rubro }}</option>
-                </select>
-            </div>
+            <mat-form-field appearance="outline">
+              <mat-label i18n>Rubro</mat-label>
+              <mat-select [(ngModel)]="filtroSeleccionado.rubro" (selectionChange)="filtrarProductos()">
+                <mat-option value="" i18n>Todos</mat-option>
+                <mat-option *ngFor="let rubro of rubrosDisponibles" [value]="rubro">{{ rubro }}</mat-option>
+              </mat-select>
+            </mat-form-field>
 
             <!-- Tipo de Producto -->
-            <div class="col-md-3">
-                <label for="tipo" i18n>Tipo de Producto</label>
-                <select id="tipo" class="form-control" (change)="filtrarProductos()"
-                    [(ngModel)]="filtroSeleccionado.tipo">
-                    <option value="" i18n>Todos</option>
-                    <option *ngFor="let tipo of tiposDisponibles" [value]="tipo">{{ tipo }}</option>
-                </select>
-            </div>
-        </div>
+            <mat-form-field appearance="outline">
+              <mat-label i18n>Tipo de Producto</mat-label>
+              <mat-select [(ngModel)]="filtroSeleccionado.tipo" (selectionChange)="filtrarProductos()">
+                <mat-option value="" i18n>Todos</mat-option>
+                <mat-option *ngFor="let tipo of tiposDisponibles" [value]="tipo">{{ tipo }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
 
-        <!-- Lista de Productos -->
-        <div *ngIf="filteredProducts.length > 0; else emptyList">
-            <div class="row">
-                <div *ngFor="let product of filteredProducts | buscadorProductos: searchTerm" class="col-md-3 mb-4">
-                    <div class="card">
-                        <img src="{{ product.imagen }}" class="card-img-top" alt="Imagen del producto">
-                        <div class="card-body">
-                            <h5 class="card-title text-center">{{ product.nom_producto }}</h5>
-                            <p class="card-text text-center">{{ product.nom_marca }}</p>
-                            <div class="d-flex justify-content-between">
-                                <button class="btn btn-success btn-producto" [disabled]="productoEnCarrito(product)"
-                                    (click)="agregarAlCarrito(product)" i18n>
-                                    <i class="bi"
-                                        [ngClass]="productoEnCarrito(product) ? 'bi-cart-check' : 'bi-cart-plus'"></i>
-                                    {{ productoEnCarrito(product) ? 'En el Carrito' : 'Agregar al Carrito' }}
-                                </button>
-                                <button class="btn btn-info btn-producto" (click)="verDetalles(product)">
-                                    <i class="bi bi-clipboard2-plus" i18n></i> Ver Detalles
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+      <!-- Lista de Productos -->
+      <div *ngIf="filteredProducts.length > 0; else emptyList" class="products-grid">
+        <mat-card *ngFor="let product of filteredProducts | buscadorProductos: searchTerm" class="product-card">
+          <img mat-card-image [src]="product.imagen" [alt]="product.nom_producto">
+          <mat-card-header>
+            <mat-card-title>{{ product.nom_producto }}</mat-card-title>
+            <mat-card-subtitle>{{ product.nom_marca }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-actions>
+            <button mat-raised-button 
+                    [color]="productoEnCarrito(product) ? 'accent' : 'primary'"
+                    [disabled]="productoEnCarrito(product)"
+                    (click)="agregarAlCarrito(product)" 
+                    i18n>
+              <mat-icon>{{ productoEnCarrito(product) ? 'check_circle' : 'add_shopping_cart' }}</mat-icon>
+              {{ productoEnCarrito(product) ? 'En el Carrito' : 'Agregar al Carrito' }}
+            </button>
+            <button mat-raised-button color="accent" (click)="verDetalles(product)">
+              <mat-icon>info</mat-icon>
+              <span i18n>Ver Detalles</span>
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
 
-        <ng-template #emptyList>
+      <ng-template #emptyList>
+        <mat-card class="empty-state">
+          <mat-card-content>
+            <mat-icon>inventory_2</mat-icon>
             <p i18n>No hay productos disponibles.</p>
-        </ng-template>
+          </mat-card-content>
+        </mat-card>
+      </ng-template>
     </div>
 
-</div>
+    <!-- Vista de Comparación de Precios -->
+    <div *ngIf="!isLoading && mostrarComparacion" class="comparison-container">
+      <mat-card class="comparison-card">
+        <mat-card-header>
+          <mat-card-title i18n>Comparación de Precios</mat-card-title>
+          <span class="toolbar-spacer"></span>
+          <button mat-icon-button (click)="volverAProductos()" matTooltip="Volver a la lista de productos">
+            <mat-icon>arrow_back</mat-icon>
+          </button>
+        </mat-card-header>
+        
+        <mat-card-content>
+          <!-- Selección de Provincia -->
+          <div class="location-selectors">
+            <mat-form-field appearance="outline">
+              <mat-label i18n>Provincia</mat-label>
+              <mat-select [(ngModel)]="provinciaSelected" (selectionChange)="onProvinciaChange($event)">
+                <mat-option value="" i18n>Seleccione una Provincia</mat-option>
+                <mat-option *ngFor="let provincia of provincias" [value]="provincia.cod_provincia">
+                  {{ provincia.nom_provincia }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
 
+            <!-- Selección de Localidad -->
+            <mat-form-field appearance="outline" *ngIf="showLocalidades">
+              <mat-label i18n>Localidad</mat-label>
+              <mat-select [(ngModel)]="localidadSelected" (selectionChange)="onLocalidadChange($event)">
+                <mat-option value="" i18n>Seleccione una Localidad</mat-option>
+                <mat-option *ngFor="let localidad of localidades" [value]="localidad.nro_localidad">
+                  {{ localidad.nom_localidad }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
 
+          <!-- Tabla de Comparación -->
+          <div *ngIf="productosComparados.length > 0" class="comparison-table-container">
+            <table mat-table [dataSource]="productosComparados" class="comparison-table">
+              <!-- Columna de Producto -->
+              <ng-container matColumnDef="producto">
+                <th mat-header-cell *matHeaderCellDef i18n>Producto</th>
+                <td mat-cell *matCellDef="let producto" class="product-cell">
+                  <div class="product-info">
+                    <img [src]="producto.imagen" [alt]="producto.nom_producto" class="product-image">
+                    <span class="product-name">{{ producto.nom_producto }}</span>
+                    <span *ngIf="producto.vigente === 'N'" class="warning-chip">
+                      <mat-chip color="warn">
+                        <mat-icon>warning</mat-icon>
+                        <span i18n>Precio Desactualizado</span>
+                      </mat-chip>
+                    </span>
+                  </div>
+                </td>
+              </ng-container>
 
-<div *ngIf="mostrarModal" class="modal-overlay"></div>
+              <!-- Columnas dinámicas de Supermercados -->
+              <ng-container *ngFor="let supermercado of supermercados" [matColumnDef]="supermercado">
+                <th mat-header-cell *matHeaderCellDef 
+                    [class.supermercado-ganador]="supermercado === supermercadoMasBarato">
+                  <div class="header-content">
+                    <span>{{ supermercado }}</span>
+                    <mat-icon *ngIf="supermercado === supermercadoMasBarato" class="winner-icon">
+                      emoji_events
+                    </mat-icon>
+                  </div>
+                </th>
+                <td mat-cell *matCellDef="let producto" 
+                    [class.precio-barato]="esPrecioMasBajo(producto.precios[supermercado], producto)"
+                    [class.supermercado-ganador]="supermercado === supermercadoMasBarato">
+                  <div class="price-cell">
+                    <span *ngIf="producto.precios[supermercado] !== undefined" class="price">
+                      {{ producto.precios[supermercado] | currency:'ARS':'symbol':'1.2-2' }}
+                    </span>
+                    <mat-chip *ngIf="producto.precios[supermercado] === undefined" color="warn" class="no-stock-chip">
+                      <span i18n>Sin Stock</span>
+                    </mat-chip>
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+
+            <!-- Fila de Totales -->
+            <div class="totals-section">
+              <mat-card class="totals-card">
+                <mat-card-header>
+                  <mat-card-title i18n>Totales por Supermercado</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                  <div class="totals-grid">
+                    <div *ngFor="let supermercado of supermercados" 
+                         class="total-item"
+                         [class.supermercado-ganador]="supermercado === supermercadoMasBarato">
+                      <div class="total-label">
+                        <span>{{ supermercado }}</span>
+                        <mat-icon *ngIf="supermercado === supermercadoMasBarato" class="winner-icon">
+                          emoji_events
+                        </mat-icon>
+                      </div>
+                      <div class="total-amount">
+                        {{ totalesSupermercado[supermercado] | currency:'ARS':'symbol':'1.2-2' }}
+                      </div>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+
+            <!-- Resultado Final -->
+            <div *ngIf="supermercadoMasBarato" class="result-section">
+              <mat-card class="result-card">
+                <mat-card-content>
+                  <div class="result-content">
+                    <mat-icon class="trophy-icon">emoji_events</mat-icon>
+                    <div class="result-text">
+                      <h3 i18n>¡Supermercado más económico!</h3>
+                      <p><strong>{{ supermercadoMasBarato }}</strong></p>
+                      <p class="savings" i18n>
+                        Total: {{ totalesSupermercado[supermercadoMasBarato] | currency:'ARS':'symbol':'1.2-2' }}
+                      </p>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+          </div>
+
+          <!-- Mensaje cuando no hay productos para comparar -->
+          <div *ngIf="productosComparados.length === 0 && localidadSelected" class="no-products-message">
+            <mat-card class="empty-state">
+              <mat-card-content>
+                <mat-icon>info</mat-icon>
+                <p i18n>No se encontraron productos en esta localidad.</p>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </mat-card-content>
+
+        <mat-card-actions>
+          <button mat-raised-button (click)="volverAProductos()" i18n>
+            <mat-icon>arrow_back</mat-icon>
+            Volver a Productos
+          </button>
+          <button mat-raised-button color="primary" (click)="limpiarCarrito()" i18n>
+            <mat-icon>refresh</mat-icon>
+            Nueva Comparación
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
 
 <!-- Modal de Detalles del Producto -->
-<div *ngIf="mostrarModal" class="modal fade show d-block modal-anim" tabindex="-1" role="dialog">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" i18n>Detalles del Producto</h5>
-            </div>
-            <div class="modal-body">
-                <!-- Imagen del Producto -->
-                <div class="text-center mb-3">
-                    <img [src]="productoSeleccionado.imagen" alt="Imagen del producto" class="img-fluid rounded"
-                        style="max-height: 200px; object-fit: contain;">
-                </div>
-                <!-- Detalles del Producto -->
-                <p i18n><strong>Nombre del Producto:</strong> {{ productoSeleccionado?.nom_producto }}</p>
-                <p i18n><strong>Descripción:</strong> {{ productoSeleccionado?.desc_producto }}</p>
-                <p i18n><strong>Categoría:</strong> {{ productoSeleccionado?.nom_categoria }}</p>
-                <p i18n><strong>Marca:</strong> {{ productoSeleccionado?.nom_marca }}</p>
-                <p i18n><strong>Tipo de Producto:</strong> {{ productoSeleccionado?.nom_tipo_producto }}</p>
-                <p i18n><strong>Rubro:</strong> {{ productoSeleccionado?.nom_rubro }}</p>
-                <p i18n><strong>Vigente:</strong> {{ productoSeleccionado?.vigente === 's' ? 'Sí' : 'No' }}</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" (click)="cerrarModal()" i18n>Cerrar</button>
-            </div>
-        </div>
-    </div>
+<div *ngIf="mostrarModal" class="modal-overlay" (click)="cerrarModal()">
+  <mat-card class="product-modal" (click)="$event.stopPropagation()">
+    <mat-card-header>
+      <mat-card-title i18n>Detalles del Producto</mat-card-title>
+      <span class="modal-spacer"></span>
+      <button mat-icon-button (click)="cerrarModal()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-card-header>
+    <mat-card-content>
+      <!-- Imagen del Producto -->
+      <div class="product-image-container">
+        <img [src]="productoSeleccionado.imagen" 
+             [alt]="productoSeleccionado.nom_producto" 
+             class="product-modal-image">
+      </div>
+      
+      <!-- Detalles del Producto -->
+      <mat-list>
+        <mat-list-item>
+          <strong i18n>Nombre del Producto:</strong> {{ productoSeleccionado?.nom_producto }}
+        </mat-list-item>
+        <mat-list-item>
+          <strong i18n>Descripción:</strong> {{ productoSeleccionado?.desc_producto }}
+        </mat-list-item>
+        <mat-list-item>
+          <strong i18n>Categoría:</strong> {{ productoSeleccionado?.nom_categoria }}
+        </mat-list-item>
+        <mat-list-item>
+          <strong i18n>Marca:</strong> {{ productoSeleccionado?.nom_marca }}
+        </mat-list-item>
+        <mat-list-item>
+          <strong i18n>Tipo de Producto:</strong> {{ productoSeleccionado?.nom_tipo_producto }}
+        </mat-list-item>
+        <mat-list-item>
+          <strong i18n>Rubro:</strong> {{ productoSeleccionado?.nom_rubro }}
+        </mat-list-item>
+        <mat-list-item>
+          <strong i18n>Vigente:</strong> {{ productoSeleccionado?.vigente === 's' ? 'Sí' : 'No' }}
+        </mat-list-item>
+      </mat-list>
+    </mat-card-content>
+    <mat-card-actions>
+      <button mat-raised-button (click)="cerrarModal()" i18n>Cerrar</button>
+    </mat-card-actions>
+  </mat-card>
 </div>
 
 <router-outlet></router-outlet>

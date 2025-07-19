@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { provincia } from '../../../components/interfaces/provincia';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +14,7 @@ export class ObtenerProvinciasService {
 
   constructor(private http: HttpClient) {}
 
-  getProvincias(cod_pais: string): Observable<any[]> {
+  getProvincias(cod_pais: string): Observable<provincia[]> {
     const authHeader = 'Basic ' + btoa(`${this.username}:${this.password}`);
     const headers = new HttpHeaders({
       'Authorization': authHeader,
@@ -22,6 +23,6 @@ export class ObtenerProvinciasService {
 
     const body = { cod_pais };
 
-    return this.http.post<any[]>(this.apiUrl, body, { headers });
+    return this.http.post<provincia[]>(this.apiUrl, body, { headers });
   }
 }
