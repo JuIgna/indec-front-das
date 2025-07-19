@@ -3,7 +3,6 @@ import { ProductService } from '../../services/productos/obtenerProductos/produc
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { CompararPreciosService } from '../../services/productos/compararPrecios/comparar-precios.service';
-import { ProductosComparadosService } from '../../services/productos/productosComparados/productos-comparados.service';
 import { FormsModule } from '@angular/forms';
 import { ObtenerProvinciasService } from '../../services/lugares/provincias/obtener-provincias.service';
 import { ObtenerLocalidadesService } from '../../services/lugares/localidades/obtener-localidades.service';
@@ -15,8 +14,6 @@ import {
 import { ObtenerIdiomasService } from '../../services/idioma/obtenerIdiomas/obtener-idiomas.service';
 import { ObtenerTraduccionService } from '../../services/idioma/obtenerTraduccion/obtener-traduccion.service';
 import { SupermercadoInterface } from '../../components/interfaces/supermercado';
-
-// Importaciones de Angular Material
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -43,7 +40,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     RouterModule,
     FormsModule,
     BuscadorProductosPipe,
-    // Angular Material Modules
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
@@ -61,14 +57,15 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   ],
   providers: [ProductService],
   templateUrl: './comparador-productos-precios.component.html',
-  styleUrl: './comparador-productos-precios.component.css',
+  styleUrls: ['./comparador-productos-precios.component.css'],
 })
 export class ComparadorProductosPreciosComponent implements OnInit {
-  supermercados: SupermercadoInterface[] = [];
+  supermercados: string[] = [];
   supermercadoMasBarato: string = '';
   totalesSupermercado: any = {};
-  paisBase: string = 'ARG';
+  paisBase: string = 'AR';
   provinciaSelected: string | null = null;
+  provincias: provincia[] = [];
   localidadSelected: string | null = null;
   isSidebarOpen = false;
   isCartOpen = false;
@@ -78,39 +75,30 @@ export class ComparadorProductosPreciosComponent implements OnInit {
   isLoading = true;
   mostrarComparacion: boolean = false;
   showLocalidades: boolean = false;
-  provincias: provincia[] = [];
   localidades: localidades[] = [];
   searchTerm: string = '';
-
   productosComparados: productosComparados[] = [];
-
-  // Listas de filtros dinámicos
   categoriasDisponibles: string[] = [];
   marcasDisponibles: string[] = [];
   rubrosDisponibles: string[] = [];
   tiposDisponibles: string[] = [];
-
-  // Valores seleccionados
   filtroSeleccionado = {
     categoria: '',
     marca: '',
     rubro: '',
     tipo: '',
   };
-
   selectedLanguage: string = '';
   selectedLanguageName: string = '';
   idiomas: any[] = [];
-
-  // Columnas de la tabla comparador de precios
   displayedColumns: string[] = ['producto'];
-
   dataSource = new MatTableDataSource(this.productosComparados);
+  mostrarModal: boolean = false;
+  productoSeleccionado: any = null;
 
   constructor(
     private productService: ProductService,
     private router: Router,
-    private productosComparadosService: ProductosComparadosService,
     private obtenerIdiomasService: ObtenerIdiomasService,
     private obtenerTraduccionService: ObtenerTraduccionService,
     private obtenerProvinciasService: ObtenerProvinciasService,
@@ -140,7 +128,6 @@ export class ComparadorProductosPreciosComponent implements OnInit {
       (data) => {
         this.idiomas = data;
         console.log('Idiomas cargados:', this.idiomas);
-
         const idioma = this.idiomas.find(
           (lang) => lang.cod_idioma === this.selectedLanguage
         );
@@ -168,7 +155,6 @@ export class ComparadorProductosPreciosComponent implements OnInit {
       }
     );
 
-    // Cargar carrito desde sessionStorage al iniciar
     const storedCart = sessionStorage.getItem('cartItems');
     if (storedCart) {
       this.cartItems = JSON.parse(storedCart);
@@ -182,19 +168,14 @@ export class ComparadorProductosPreciosComponent implements OnInit {
       alert('Debe agregar productos al carrito antes de comparar precios.');
       return;
     }
-
     this.mostrarComparacion = true;
     this.showLocalidades = false;
     this.productosComparados = [];
     this.supermercados = [];
     this.totalesSupermercado = {};
     this.supermercadoMasBarato = '';
-
-    // Resetear selecciones si es necesario
     this.provinciaSelected = null;
     this.localidadSelected = null;
-
-    // Cargar selección guardada si existe
     this.cargarSeleccionGuardada();
   }
 
@@ -210,18 +191,15 @@ export class ComparadorProductosPreciosComponent implements OnInit {
 
   esPrecioMasBajo(precio: number, producto: any): boolean {
     if (precio === undefined || precio === null) return false;
-
     const precios = Object.values(producto.precios)
       .filter((p) => p !== undefined && p !== null)
       .map((p) => Number(p));
-
     return precios.length > 0 && precio === Math.min(...precios);
   }
 
   cargarSeleccionGuardada(): void {
     const provinciaGuardada = sessionStorage.getItem('cod_provincia');
     const localidadGuardada = sessionStorage.getItem('nro_localidad');
-
     if (provinciaGuardada) {
       this.provinciaSelected = provinciaGuardada;
       this.showLocalidades = true;
@@ -237,21 +215,16 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     console.log(this.selectedLanguage);
   }
 
-  // Cambia el idioma de la aplicación y redirige al puerto correspondiente
   changeLanguage(language: string): void {
     this.selectedLanguage = language;
     console.log(this.selectedLanguage);
-    // Determina el puerto según el idioma
     const currentHost = window.location.hostname;
     const newPort = language === 'en' ? '4201' : '4200';
     console.log(
       'Nueva dirección:',
       `${window.location.protocol}//${currentHost}:${newPort}${window.location.pathname}`
     );
-
-    // Vaciar el carrito antes de cambiar el idioma
     this.limpiarCarritoSinPregunta();
-
     if (window.location.port !== newPort) {
       window.location.href = `${window.location.protocol}//${currentHost}:${newPort}`;
     }
@@ -262,7 +235,6 @@ export class ComparadorProductosPreciosComponent implements OnInit {
   cargarTraducciones(lang: string) {
     this.selectedLanguage = lang;
     localStorage.setItem('lang', lang);
-
     this.obtenerTraduccionService.getTraducciones(lang).subscribe(
       (data) => {
         this.traducciones = data;
@@ -287,7 +259,6 @@ export class ComparadorProductosPreciosComponent implements OnInit {
               )?.nom_tipo_producto || product.nom_tipo_producto,
           };
         });
-
         this.actualizarOpcionesFiltro();
       },
       (error) => {
@@ -301,7 +272,6 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     sessionStorage.setItem('cartItems', JSON.stringify(this.cartItems));
   }
 
-  // Agregar producto al carrito y guardarlo en sessionStorage
   agregarAlCarrito(product: any) {
     if (!this.productoEnCarrito(product)) {
       this.cartItems = [...this.cartItems, product];
@@ -359,7 +329,6 @@ export class ComparadorProductosPreciosComponent implements OnInit {
 
   filtrarProductos() {
     let filtrados = [...this.products];
-
     if (this.filtroSeleccionado.categoria) {
       filtrados = filtrados.filter(
         (p) => p.nom_categoria === this.filtroSeleccionado.categoria
@@ -380,9 +349,7 @@ export class ComparadorProductosPreciosComponent implements OnInit {
         (p) => p.nom_tipo_producto === this.filtroSeleccionado.tipo
       );
     }
-
     this.filteredProducts = filtrados;
-
     this.categoriasDisponibles = [
       ...new Set(filtrados.map((p) => p.nom_categoria)),
     ];
@@ -419,9 +386,7 @@ export class ComparadorProductosPreciosComponent implements OnInit {
   onProvinciaChange(event: MatSelectChange): void {
     this.provinciaSelected = event.value;
     sessionStorage.setItem('cod_provincia', this.provinciaSelected || '');
-
     console.log('Provincia seleccionada:', this.provinciaSelected);
-
     if (this.paisBase && this.provinciaSelected) {
       this.obtenerLocalidadesService
         .getLocalidades(this.paisBase, this.provinciaSelected)
@@ -429,7 +394,7 @@ export class ComparadorProductosPreciosComponent implements OnInit {
           (data) => {
             this.localidades = data;
             this.showLocalidades = true;
-            this.localidadSelected = null; // Reset localidad
+            this.localidadSelected = null;
             sessionStorage.removeItem('nro_localidad');
             console.log('Localidades cargadas:', this.localidades);
           },
@@ -448,99 +413,87 @@ export class ComparadorProductosPreciosComponent implements OnInit {
   onLocalidadChange(event: MatSelectChange): void {
     this.localidadSelected = event.value;
     sessionStorage.setItem('nro_localidad', this.localidadSelected || '');
-
     console.log('Localidad seleccionada:', this.localidadSelected);
-
     if (this.localidadSelected) {
       this.compararProductos();
     }
   }
-compararProductos(): void {
-  if (!this.localidadSelected) {
-    alert("Debe seleccionar una localidad antes de comparar precios.");
-    return;
-  }
 
-  const codigosBarra = this.cartItems.map(item => item.cod_barra);
-  console.log("Comparando Productos con códigos de barra:", codigosBarra, "y localidad:", this.localidadSelected);
-
-  // Usar el servicio correcto
-  this.compararPreciosService.getCompararPrecios(codigosBarra, this.localidadSelected).subscribe(
-    (data) => {
-      if (!data || data.length === 0) {
-        alert('No se encontraron estos productos en esta localidad.');
-        this.productosComparados = [];
-        return;
-      }
-
-      console.log("Datos recibidos:", data);
-
-      // Agrupar productos por código de barra
-      const productosMap = new Map<string, any>();
-
-      data.forEach(producto => {
-        if (!productosMap.has(producto.cod_barra)) {
-          productosMap.set(producto.cod_barra, {
-            nom_producto: producto.nom_producto,
-            imagen: producto.imagen,
-            precios: {},
-            vigente: producto.vigente
-          });
-        }
-        productosMap.get(producto.cod_barra)!.precios[producto.razon_social] = producto.mejor_precio;
-      });
-      
-      this.productosComparados = Array.from(productosMap.values());
-      console.log('Productos comparados:', this.productosComparados);
-
-      // Extraer supermercados únicos
-      this.supermercados = Array.from(new Set(data.map(producto => producto.razon_social)));
-      
-      // Actualizar columnas de la tabla
-      this.displayedColumns = ['producto', ...this.supermercados];
-
-      // Calcular totales por supermercado
-      this.calcularTotales();
-
-      // Actualizar dataSource para la tabla
-      this.dataSource.data = this.productosComparados;
-    },
-    (error) => {
-      console.error('Error al comparar los productos:', error);
-      alert('No se pudo obtener la lista de productos comparados. Verifique la consola.');
+  compararProductos(): void {
+    if (!this.localidadSelected) {
+      alert('Debe seleccionar una localidad antes de comparar precios.');
+      return;
     }
-  );
-}
+    const codigosBarra = this.cartItems.map((item) => item.cod_barra);
+    console.log(
+      'Comparando Productos con códigos de barra:',
+      codigosBarra,
+      'y localidad:',
+      this.localidadSelected
+    );
+    this.compararPreciosService
+      .getCompararPrecios(codigosBarra, this.localidadSelected)
+      .subscribe(
+        (data) => {
+          if (!data || data.length === 0) {
+            alert('No se encontraron estos productos en esta localidad.');
+            this.productosComparados = [];
+            return;
+          }
+          console.log('Datos recibidos:', data);
+          const productosMap = new Map<string, any>();
+          data.forEach((producto) => {
+            if (!productosMap.has(producto.cod_barra)) {
+              productosMap.set(producto.cod_barra, {
+                nom_producto: producto.nom_producto,
+                imagen: producto.imagen,
+                precios: {},
+                vigente: producto.vigente,
+              });
+            }
+            productosMap.get(producto.cod_barra)!.precios[
+              producto.razon_social
+            ] = producto.mejor_precio;
+          });
+          this.productosComparados = Array.from(productosMap.values());
+          console.log('Productos comparados:', this.productosComparados);
+          this.supermercados = Array.from(
+            new Set(data.map((producto) => producto.razon_social))
+          );
+          this.displayedColumns = ['producto', ...this.supermercados];
+          this.calcularTotales();
+          this.dataSource.data = this.productosComparados;
+        },
+        (error) => {
+          console.error('Error al comparar los productos:', error);
+          alert(
+            'No se pudo obtener la lista de productos comparados. Verifique la consola.'
+          );
+        }
+      );
+  }
 
   calcularTotales(): void {
     this.totalesSupermercado = {};
-
-    // Inicializar totales en 0
     this.supermercados.forEach((supermercado) => {
       this.totalesSupermercado[supermercado] = 0;
     });
-
-    // Sumar precios por supermercado
     this.productosComparados.forEach((producto) => {
       this.supermercados.forEach((supermercado) => {
-        if (producto.mejor_precio[supermercado] !== undefined) {
+        if (producto.precios[supermercado] !== undefined) {
           this.totalesSupermercado[supermercado] +=
-            producto.mejor_precio[supermercado];
+            producto.precios[supermercado];
         }
       });
     });
-
-    // Determinar el supermercado más barato
     const supermercadosConPrecios = Object.keys(
       this.totalesSupermercado
     ).filter((supermercado) => this.totalesSupermercado[supermercado] > 0);
-
     if (supermercadosConPrecios.length > 0) {
       this.supermercadoMasBarato = supermercadosConPrecios.reduce((a, b) =>
         this.totalesSupermercado[a] < this.totalesSupermercado[b] ? a : b
       );
     }
-
     console.log('Totales por supermercado:', this.totalesSupermercado);
     console.log('Supermercado más barato:', this.supermercadoMasBarato);
   }
@@ -549,17 +502,12 @@ compararProductos(): void {
     const precios = Object.values(producto.precios).filter(
       (precio) => typeof precio === 'number'
     ) as number[];
-
     return precios.length > 0 ? Math.min(...precios) : undefined;
   }
 
   productoEnCarrito(product: any): boolean {
     return this.cartItems.some((item) => item.cod_barra === product.cod_barra);
   }
-
-  // Función para ver los detalles del producto
-  mostrarModal: boolean = false;
-  productoSeleccionado: any = null;
 
   verDetalles(producto: any) {
     this.productoSeleccionado = producto;
@@ -577,12 +525,6 @@ compararProductos(): void {
 
   goToPriceComparator() {
     this.router.navigate(['/home/comparador-productos']);
-  }
-
-  goToComparador() {
-    this.closeMenus();
-    this.productosComparadosService.setProductosComparados(this.cartItems);
-    this.router.navigate(['/home/comparador-productos/resultados-comparador']);
   }
 
   goToAdminSupermercados() {

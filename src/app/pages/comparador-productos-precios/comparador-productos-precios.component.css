@@ -370,3 +370,193 @@ button:focus {
   outline: 2px solid #3f51b5;
   outline-offset: 2px;
 }
+
+/* ===== COMPARISON TABLE ===== */
+.comparison-table-container {
+  overflow-x: auto;
+  margin-top: 16px;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: center;
+}
+
+.comparison-table th,
+.comparison-table td {
+  padding: 4px; /* Del CSS del modal */
+  border: 1px solid #ddd; /* Del CSS del modal */
+  vertical-align: middle;
+}
+
+.product-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.product-image {
+  width: 50px; /* Tamaño fijo para la imagen */
+  height: 50px;
+  object-fit: cover; /* Evita distorsiones */
+  margin: 0 auto; /* Centrado, del CSS del modal */
+  border-radius: 4px; /* Bordes redondeados para consistencia */
+}
+
+.product-name {
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.warning-chip {
+  display: inline-flex;
+  align-items: center;
+}
+
+.price-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.no-stock-chip {
+  font-size: 0.8rem;
+  color: red; /* Del CSS del modal (.sin-stock) */
+  font-weight: bold; /* Del CSS del modal */
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.winner-icon {
+  color: #FFD700; /* Dorado para el ícono de ganador */
+}
+
+.precio-barato {
+  color: green; /* Del CSS del modal (.precio-mas-bajo, .precio-barato) */
+  font-weight: bold;
+}
+
+.supermercado-ganador {
+  background-color: #4CAF50; /* Verde del CSS del modal (.supermercado-mas-barato) */
+  color: white;
+  font-weight: bold;
+}
+
+.totals-section {
+  margin-top: 24px;
+}
+
+.totals-card {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.totals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 16px;
+}
+
+.total-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  border: 1px solid #ddd; /* Consistencia con la tabla */
+  border-radius: 4px;
+}
+
+.total-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+}
+
+.total-amount {
+  font-size: 1.1rem;
+  color: #3f51b5;
+}
+
+.result-section {
+  margin-top: 24px;
+}
+
+.result-card {
+  background-color: #E8F5E9; /* Verde claro para destacar */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.result-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+}
+
+.trophy-icon {
+  font-size: 40px;
+  height: 40px;
+  width: 40px;
+  color: #FFD700; /* Dorado */
+}
+
+.result-text h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.result-text p {
+  margin: 4px 0;
+}
+
+.savings {
+  color: green;
+  font-weight: bold;
+}
+
+/* Responsive para la tabla */
+@media (max-width: 768px) {
+  .comparison-table th,
+  .comparison-table td {
+    padding: 3px;
+    font-size: 0.9rem;
+  }
+
+  .product-image {
+    width: 40px;
+    height: 40px;
+  }
+
+  .product-name {
+    font-size: 0.9rem;
+  }
+
+  .totals-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-image {
+    width: 30px;
+    height: 30px;
+  }
+
+  .product-name {
+    font-size: 0.8rem;
+  }
+
+  .comparison-table th,
+  .comparison-table td {
+    padding: 2px;
+    font-size: 0.8rem;
+  }
+}

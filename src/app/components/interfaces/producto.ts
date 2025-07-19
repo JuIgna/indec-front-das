@@ -17,8 +17,9 @@ export interface Producto {
 export interface productosComparados {
     cod_barra: string,
     nom_producto: string,
-    imagen: string,
-    nro_supermercado: number,
-    razon_social: string,
-    mejor_precio: number
+    imagen?: string,
+    nro_supermercado?: number,
+    razon_social?: string,
+    mejor_precio?: number,
+    precios: { [key: string]: number | undefined };
 }
