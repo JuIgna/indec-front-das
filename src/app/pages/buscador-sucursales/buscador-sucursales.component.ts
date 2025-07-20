@@ -1,6 +1,6 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { ObtenerPaisesService } from '../../services/lugares/paises/obtener-paises.service';
 import { ObtenerProvinciasService } from '../../services/lugares/provincias/obtener-provincias.service';
 import { ObtenerLocalidadesService } from '../../services/lugares/localidades/obtener-localidades.service';
@@ -27,7 +27,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
 import { SupermercadoInterface } from '../../components/interfaces/supermercado';
-import { SucursalInterface } from '../../components/interfaces/sucursal';
+import { filtrosSucursal, SucursalInterface } from '../../components/interfaces/sucursal';
 import {
   animate,
   state,
@@ -92,6 +92,7 @@ export class BuscadorSucursalesComponent implements OnInit {
   selectedLanguage: string = '';
   selectedLanguageName: string = '';
   idiomas: any[] = [];
+  filtrosRuta?: filtrosSucursal;
 
   // Columnas de la tabla
   displayedColumns: string[] = [
@@ -118,6 +119,7 @@ export class BuscadorSucursalesComponent implements OnInit {
     private obtenerSucursalesService: ObtenerSucursalesService,
     private supermercadosService: SupermercadosService,
     private router: Router,
+    private route: ActivatedRoute,
     private obtenerIdiomasService: ObtenerIdiomasService
   ) { }
 
@@ -165,8 +167,32 @@ export class BuscadorSucursalesComponent implements OnInit {
       }
     );
 
+    const params = this.route.snapshot.queryParams;
+    const encodedData = params['data'];
+
+    if (encodedData){
+      try{ 
+        const decoded = JSON.parse(atob(encodedData));
+        const { cod_pais, cod_provincia, nro_localidad, nro_supermercado } = decoded;
+
+        if (cod_pais && cod_provincia && nro_localidad && nro_supermercado){
+          this.nro_localidad = nro_localidad;
+          this.selectedLocalidad = nro_localidad;
+          this.selectedProvincia = cod_provincia;
+          this.cod_provincia = cod_provincia;
+          this.nro_supermercado = nro_supermercado;
+
+          this.getSucursales();
+        }
+
+      } catch (error){
+        console.error ("Error al decodificar los parametros de las sucursales ", error )
+      }
+    }
+
     this.detectLanguage();
   }
+
 
   ngAfterViewInit() { }
 
@@ -268,6 +294,11 @@ export class BuscadorSucursalesComponent implements OnInit {
       return;
     }
 
+    this.getSucursales();
+
+  }
+  
+  getSucursales () {
     this.obtenerSucursalesService
       .getSucursales(this.nro_localidad, this.nro_supermercado)
       .subscribe(
@@ -276,7 +307,7 @@ export class BuscadorSucursalesComponent implements OnInit {
           this.dataSource.data = this.sucursales;
           this.showSucursales = true;
           this.isLoading = false;
-
+  
           //this.actualizarPaginator();
           console.log('Sucursales obtenidas:', this.sucursales);
         },
@@ -289,6 +320,7 @@ export class BuscadorSucursalesComponent implements OnInit {
           );
         }
       );
+    
   }
 
   formatHorario(horario: string): string[] {

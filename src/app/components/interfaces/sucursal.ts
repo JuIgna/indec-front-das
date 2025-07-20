@@ -15,3 +15,12 @@ export interface SucursalInterface {
     nom_pais: string,      
     habilitada: boolean
 }
+
+
+// para cuando nos movemos entre pantallas
+export interface filtrosSucursal {
+    cod_pais: string,
+    cod_provincia: string,
+    nro_localidad: string,
+    nro_supermercado: number | null
+}

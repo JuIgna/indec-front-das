@@ -349,9 +349,34 @@
 
 /* Estilo para el contenido del sidenav */
 mat-sidenav {
-  width: 300px;
-  min-width: 300px;
+  width: 280px !important;
+  max-width: 90vw;
+  background: #FFF2F2;
+  box-shadow: 2px 0 8px rgba(0,0,0,0.08);
+  padding: 0;
+  overflow-y: auto;
 }
+
+
+.sidenav-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 16px 0 16px;
+}
+
+
+.sidenav-header h4 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2D336B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
 
 @media (max-width: 768px) {
   mat-sidenav {

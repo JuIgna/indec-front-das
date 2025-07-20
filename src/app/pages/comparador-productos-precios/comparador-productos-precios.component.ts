@@ -14,6 +14,7 @@ import {
 import { ObtenerIdiomasService } from '../../services/idioma/obtenerIdiomas/obtener-idiomas.service';
 import { ObtenerTraduccionService } from '../../services/idioma/obtenerTraduccion/obtener-traduccion.service';
 import { SupermercadoInterface } from '../../components/interfaces/supermercado';
+import { SupermercadosService } from '../../services/supermercados/supermercados.service';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -31,6 +32,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { filtrosSucursal } from '../../components/interfaces/sucursal';
 
 @Component({
   selector: 'app-comparador-productos-precios',
@@ -61,6 +63,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 })
 export class ComparadorProductosPreciosComponent implements OnInit {
   supermercados: string[] = [];
+  todosSupermercados: SupermercadoInterface[] = [];
   supermercadoMasBarato: string = '';
   totalesSupermercado: any = {};
   paisBase: string = 'AR';
@@ -103,7 +106,8 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     private obtenerTraduccionService: ObtenerTraduccionService,
     private obtenerProvinciasService: ObtenerProvinciasService,
     private obtenerLocalidadesService: ObtenerLocalidadesService,
-    private compararPreciosService: CompararPreciosService
+    private compararPreciosService: CompararPreciosService,
+    private supermercadosService: SupermercadosService
   ) {}
 
   ngOnInit() {
@@ -159,6 +163,17 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     if (storedCart) {
       this.cartItems = JSON.parse(storedCart);
     }
+
+    this.supermercadosService.getSupermercados().subscribe(
+      (data) => {
+        this.todosSupermercados = data;
+        console.log('Supermercados Cargados', this.todosSupermercados);
+      },
+      (error) => {
+        console.error('No se pudo obtener los supermercados', error);
+        alert('No se pudo obtener los supermercados');
+      }
+    );
 
     this.detectLanguage();
   }
@@ -512,6 +527,24 @@ export class ComparadorProductosPreciosComponent implements OnInit {
   verDetalles(producto: any) {
     this.productoSeleccionado = producto;
     this.mostrarModal = true;
+  }
+
+  // mandamos al usuario a la pantalla de sucursales
+  verSucursales(filtros: filtrosSucursal): void {
+    const base64params = btoa(JSON.stringify(filtros));
+
+    const url = `/buscador-sucursales?data=${encodeURIComponent(base64params)}`;
+
+    window.open(url, '_blank');
+  }
+
+  getNroSupermercado(nombre: string): number | null {
+    console.log('NOMBRE ', nombre);
+    const supermercado = this.todosSupermercados.find(
+      (s) => s.razon_social === nombre
+    );
+    console.log('supermercado ', supermercado);
+    return supermercado ? supermercado.nro_supermercado : null;
   }
 
   cerrarModal() {

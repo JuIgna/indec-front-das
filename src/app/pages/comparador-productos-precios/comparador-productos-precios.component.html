@@ -20,15 +20,14 @@
 </mat-toolbar>
 
 <!-- Menú Lateral -->
-<mat-sidenav-container class="sidenav-container">
-  <mat-sidenav #sidenav [opened]="isSidebarOpen" mode="over" position="start" (closedStart)="closeMenus()">
-    <mat-toolbar color="accent">
-      <span i18n>Nuestros Servicios</span>
-      <span class="toolbar-spacer"></span>
-      <button mat-icon-button (click)="closeMenus()">
+<mat-sidenav-container>
+  <mat-sidenav #sidenav mode="over" [(opened)]="isSidebarOpen" (closed)="closeMenus()" class="sidebar">
+    <div class="sidenav-header">
+      <!-- <button mat-icon-button class="close-btn" (click)="closeMenus()">
         <mat-icon>close</mat-icon>
-      </button>
-    </mat-toolbar>
+      </button> -->
+      <h4 i18n>Nuestros Servicios</h4>
+    </div>
 
     <mat-nav-list>
       <mat-list-item (click)="goToPriceComparator()">
@@ -39,10 +38,10 @@
         <mat-icon matListIcon>location_on</mat-icon>
         <span i18n>Buscar Sucursales</span>
       </mat-list-item>
-      <mat-list-item (click)="goToAdminSupermercados()">
+      <!-- <mat-list-item (click)="goToAdminSupermercados()">
         <mat-icon matListIcon>store</mat-icon>
         <span i18n>Administrador de Supermercados</span>
-      </mat-list-item>
+      </mat-list-item> -->
     </mat-nav-list>
 
     <!-- Selector de idioma -->
@@ -63,17 +62,17 @@
   <mat-sidenav #cartSidenav [opened]="isCartOpen" mode="over" position="end" (closedStart)="closeMenus()">
     <mat-toolbar color="accent">
       <span i18n>Carrito</span>
-      <span class="toolbar-spacer"></span>
+      <!-- <span class="toolbar-spacer"></span>
       <button mat-icon-button (click)="closeMenus()">
         <mat-icon>close</mat-icon>
-      </button>
+      </button> -->
     </mat-toolbar>
 
     <div class="cart-content">
       <div *ngIf="cartItems.length > 0; else emptyCart">
         <mat-list>
           <mat-list-item *ngFor="let product of cartItems">
-            <img matListAvatar [src]="product.imagen" alt="Imagen del producto">
+            <img matListAvatar [src]="product.imagen" alt="Imagen del producto" style="width: 20px; ">
             <div matLine>
               <strong>{{ product.nom_producto }}</strong>
             </div>
@@ -168,7 +167,7 @@
       <!-- Lista de Productos -->
       <div *ngIf="filteredProducts.length > 0; else emptyList" class="products-grid">
         <mat-card *ngFor="let product of filteredProducts | buscadorProductos: searchTerm" class="product-card">
-          <img mat-card-image [src]="product.imagen" [alt]="product.nom_producto">
+          <img mat-card-image [src]="product.imagen" [alt]="product.nom_producto" (click)="verDetalles(product)">
           <mat-card-header>
             <mat-card-title>{{ product.nom_producto }}</mat-card-title>
             <mat-card-subtitle>{{ product.nom_marca }}</mat-card-subtitle>
@@ -346,9 +345,10 @@
             <mat-icon>arrow_back</mat-icon>
             Volver a Productos
           </button>
-          <button mat-raised-button color="primary" (click)="limpiarCarrito()" i18n>
+          <button mat-raised-button color="primary" 
+                  (click)="verSucursales({cod_pais: 'AR', cod_provincia: provinciaSelected || '', nro_localidad: localidadSelected || '', nro_supermercado: getNroSupermercado(supermercadoMasBarato)})" i18n>
             <mat-icon>refresh</mat-icon>
-            Nueva Comparación
+            Ver Sucursales
           </button>
         </mat-card-actions>
       </mat-card>
@@ -364,7 +364,7 @@
       <span class="modal-spacer"></span>
       <button mat-icon-button (click)="cerrarModal()">
         <mat-icon>close</mat-icon>
-      </button>
+      </button> m        
     </mat-card-header>
     <mat-card-content>
       <!-- Imagen del Producto -->
@@ -394,9 +394,9 @@
         <mat-list-item>
           <strong i18n>Rubro:</strong> {{ productoSeleccionado?.nom_rubro }}
         </mat-list-item>
-        <mat-list-item>
+        <!-- <mat-list-item>
           <strong i18n>Vigente:</strong> {{ productoSeleccionado?.vigente === 's' ? 'Sí' : 'No' }}
-        </mat-list-item>
+        </mat-list-item> -->
       </mat-list>
     </mat-card-content>
     <mat-card-actions>
