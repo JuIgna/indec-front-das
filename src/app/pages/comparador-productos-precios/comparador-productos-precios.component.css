@@ -107,6 +107,7 @@
   margin-top: 16px;
 }
 
+
 /* ===== PRODUCTS GRID ===== */
 .products-grid {
   display: grid;
@@ -585,3 +586,4 @@ button:focus {
     font-size: 0.8rem;
   }
 }
+

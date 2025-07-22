@@ -170,6 +170,7 @@ export class BuscadorSucursalesComponent implements OnInit {
     const params = this.route.snapshot.queryParams;
     const encodedData = params['data'];
 
+    console.log (encodedData)
     if (encodedData){
       try{ 
         const decoded = JSON.parse(atob(encodedData));
@@ -180,7 +181,7 @@ export class BuscadorSucursalesComponent implements OnInit {
           this.selectedLocalidad = nro_localidad;
           this.selectedProvincia = cod_provincia;
           this.cod_provincia = cod_provincia;
-          this.nro_supermercado = nro_supermercado;
+          this.nro_supermercado = [String(nro_supermercado)];
 
           this.getSucursales();
         }

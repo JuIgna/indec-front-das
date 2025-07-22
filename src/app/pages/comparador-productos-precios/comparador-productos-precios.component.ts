@@ -148,16 +148,7 @@ export class ComparadorProductosPreciosComponent implements OnInit {
       }
     );
 
-    this.obtenerProvinciasService.getProvincias(this.paisBase).subscribe(
-      (data) => {
-        this.provincias = data;
-        console.log('Provincias cargadas', this.provincias);
-      },
-      (error) => {
-        console.error('No se pudo obtener las provincias ', error);
-        alert('No se pudo obtener la lista de provincias');
-      }
-    );
+    this.getProvincias();
 
     const storedCart = sessionStorage.getItem('cartItems');
     if (storedCart) {
@@ -178,11 +169,50 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     this.detectLanguage();
   }
 
+  getProvincias(): void {
+    this.obtenerProvinciasService.getProvincias(this.paisBase).subscribe(
+      (data) => {
+        this.provincias = data;
+        console.log('Provincias cargadas', this.provincias);
+      },
+      (error) => {
+        console.error('No se pudo obtener las provincias ', error);
+        alert('No se pudo obtener la lista de provincias');
+      }
+    );
+  }
+
+  getLocalidades(): void {
+    if (this.provinciaSelected) {
+      this.obtenerLocalidadesService
+        .getLocalidades(this.paisBase, this.provinciaSelected)
+        .subscribe(
+          (data) => {
+            this.localidades = data;
+            this.showLocalidades = true;
+            this.localidadSelected = null;
+            sessionStorage.removeItem('nro_localidad');
+            console.log('Localidades cargadas:', this.localidades);
+          },
+          (error) => {
+            console.error('Error al obtener las localidades:', error);
+            alert(
+              'No se pudo obtener la lista de localidades. Verifique la consola para más detalles.'
+            );
+          }
+        );
+    } else {
+      console.error('No esta definida la provincia.');
+    }
+  }
+
   iniciarComparacion(): void {
     if (this.cartItems.length === 0) {
       alert('Debe agregar productos al carrito antes de comparar precios.');
       return;
     }
+    this.isCartOpen = false;
+
     this.mostrarComparacion = true;
     this.showLocalidades = false;
     this.productosComparados = [];
@@ -403,25 +433,7 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     sessionStorage.setItem('cod_provincia', this.provinciaSelected || '');
     console.log('Provincia seleccionada:', this.provinciaSelected);
     if (this.paisBase && this.provinciaSelected) {
-      this.obtenerLocalidadesService
-        .getLocalidades(this.paisBase, this.provinciaSelected)
-        .subscribe(
-          (data) => {
-            this.localidades = data;
-            this.showLocalidades = true;
-            this.localidadSelected = null;
-            sessionStorage.removeItem('nro_localidad');
-            console.log('Localidades cargadas:', this.localidades);
-          },
-          (error) => {
-            console.error('Error al obtener las localidades:', error);
-            alert(
-              'No se pudo obtener la lista de localidades. Verifique la consola para más detalles.'
-            );
-          }
-        );
-    } else {
-      console.error('El código de país o provincia no está definido');
+      this.getLocalidades();
     }
   }
 
@@ -533,7 +545,9 @@ export class ComparadorProductosPreciosComponent implements OnInit {
   verSucursales(filtros: filtrosSucursal): void {
     const base64params = btoa(JSON.stringify(filtros));
 
-    const url = `/buscador-sucursales?data=${encodeURIComponent(base64params)}`;
+    console.log ("filtros " , filtros)
+
+    const url = `/home/buscador-sucursales?data=${encodeURIComponent(base64params)}`;
 
     window.open(url, '_blank');
   }
