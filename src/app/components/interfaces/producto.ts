@@ -14,6 +14,12 @@ export interface Producto {
     vigente: string;
 }
 
+export interface EstadoProducto {
+    precio?: number,
+    estado: 'con_precio' | 'sin_stock' | 'sin_precio' | 'sin_precio_actual';
+    mensaje_tooltip: string;
+}
+
 export interface productosComparados {
     cod_barra: string,
     nom_producto: string,
@@ -21,5 +27,8 @@ export interface productosComparados {
     nro_supermercado?: number,
     razon_social?: string,
     mejor_precio?: number,
-    precios: { [key: string]: number | undefined };
+    precios: { [supermercado: string]: EstadoProducto };
+    // sin_stock?: {[key: string]: number}; // 1 si no hay stock, 0 si hay
+    // sin_precio?: {[key: string]: number} // 1 si no hay precio, 0 si tiene
+    // sin_precio_actual?: {[key: string]: number} // 1 si no tiene precio actual (dia de hoy) 0 si no
 }

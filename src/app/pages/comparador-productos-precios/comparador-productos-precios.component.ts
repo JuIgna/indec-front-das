@@ -8,6 +8,7 @@ import { ObtenerProvinciasService } from '../../services/lugares/provincias/obte
 import { ObtenerLocalidadesService } from '../../services/lugares/localidades/obtener-localidades.service';
 import { BuscadorProductosPipe } from '../../components/pipes/buscador-productos.pipe';
 import {
+  EstadoProducto,
   Producto,
   productosComparados,
 } from '../../components/interfaces/producto';
@@ -234,12 +235,19 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     this.displayedColumns = ['producto'];
   }
 
-  esPrecioMasBajo(precio: number, producto: any): boolean {
-    if (precio === undefined || precio === null) return false;
-    const precios = Object.values(producto.precios)
-      .filter((p) => p !== undefined && p !== null)
-      .map((p) => Number(p));
-    return precios.length > 0 && precio === Math.min(...precios);
+  // Método auxiliar para determinar si es el precio más bajo
+  esPrecioMasBajo(
+    estadoProducto: EstadoProducto,
+    producto: productosComparados
+  ): boolean {
+    if (!estadoProducto || estadoProducto.precio === undefined) {
+      return false;
+    }
+
+    const precioMasBajo = this.obtenerPrecioMasBajo(producto);
+    return (
+      precioMasBajo !== undefined && estadoProducto.precio === precioMasBajo
+    );
   }
 
   cargarSeleccionGuardada(): void {
@@ -451,6 +459,7 @@ export class ComparadorProductosPreciosComponent implements OnInit {
       alert('Debe seleccionar una localidad antes de comparar precios.');
       return;
     }
+
     const codigosBarra = this.cartItems.map((item) => item.cod_barra);
     console.log(
       'Comparando Productos con códigos de barra:',
@@ -458,6 +467,7 @@ export class ComparadorProductosPreciosComponent implements OnInit {
       'y localidad:',
       this.localidadSelected
     );
+
     this.compararPreciosService
       .getCompararPrecios(codigosBarra, this.localidadSelected)
       .subscribe(
@@ -467,23 +477,11 @@ export class ComparadorProductosPreciosComponent implements OnInit {
             this.productosComparados = [];
             return;
           }
+
           console.log('Datos recibidos:', data);
-          const productosMap = new Map<string, any>();
-          data.forEach((producto) => {
-            if (!productosMap.has(producto.cod_barra)) {
-              productosMap.set(producto.cod_barra, {
-                nom_producto: producto.nom_producto,
-                imagen: producto.imagen,
-                precios: {},
-                vigente: producto.vigente,
-              });
-            }
-            productosMap.get(producto.cod_barra)!.precios[
-              producto.razon_social
-            ] = producto.mejor_precio;
-          });
-          this.productosComparados = Array.from(productosMap.values());
+          this.productosComparados = this.mapearProductosComparados(data);
           console.log('Productos comparados:', this.productosComparados);
+
           this.supermercados = Array.from(
             new Set(data.map((producto) => producto.razon_social))
           );
@@ -500,35 +498,100 @@ export class ComparadorProductosPreciosComponent implements OnInit {
       );
   }
 
+  private mapearProductosComparados(data: any[]): productosComparados[] {
+    const productosMap = new Map<string, productosComparados>();
+
+    data.forEach((producto) => {
+      if (!productosMap.has(producto.cod_barra)) {
+        productosMap.set(producto.cod_barra, {
+          cod_barra: producto.cod_barra,
+          nom_producto: producto.nom_producto,
+          imagen: producto.imagen,
+          precios: {}
+       });
+      }
+
+      const productoActual = productosMap.get(producto.cod_barra)!;
+      const estadoProducto = this.determinarEstadoProducto(producto);
+
+      productoActual.precios[producto.razon_social] = estadoProducto;
+    });
+
+    return Array.from(productosMap.values());
+  }
+
+  private determinarEstadoProducto(producto: any): EstadoProducto {
+    // Campos del SP:
+    // - sin_stock: boolean
+    // - sin_precio: boolean
+    // - sin_precio_actual: boolean
+    // - mejor_precio: number (puede ser null)
+
+    // Prioridad: Sin stock > Sin precio > Sin precio actual > Con precio
+    if (producto.sin_stock) {
+      return {
+        estado: 'sin_stock',
+        mensaje_tooltip: 'Producto sin stock en esta localidad',
+      };
+    }
+
+    if (producto.sin_precio) {
+      return {
+        estado: 'sin_precio',
+        mensaje_tooltip: 'No hay precio disponible para este producto',
+      };
+    }
+
+    if (producto.sin_precio_actual) {
+      return {
+        estado: 'sin_precio_actual',
+        mensaje_tooltip: 'No hay precio actualizado para la fecha actual',
+      };
+    }
+
+    return {
+      precio: producto.mejor_precio,
+      estado: 'con_precio',
+      mensaje_tooltip: '',
+    };
+  }
+
+  // Actualizar el método calcularTotales para trabajar con el nuevo formato
   calcularTotales(): void {
     this.totalesSupermercado = {};
     this.supermercados.forEach((supermercado) => {
       this.totalesSupermercado[supermercado] = 0;
     });
+
     this.productosComparados.forEach((producto) => {
       this.supermercados.forEach((supermercado) => {
-        if (producto.precios[supermercado] !== undefined) {
-          this.totalesSupermercado[supermercado] +=
-            producto.precios[supermercado];
+        const estadoProducto = producto.precios[supermercado];
+        if (estadoProducto && estadoProducto.precio !== undefined) {
+          this.totalesSupermercado[supermercado] += estadoProducto.precio;
         }
       });
     });
+
     const supermercadosConPrecios = Object.keys(
       this.totalesSupermercado
     ).filter((supermercado) => this.totalesSupermercado[supermercado] > 0);
+
     if (supermercadosConPrecios.length > 0) {
       this.supermercadoMasBarato = supermercadosConPrecios.reduce((a, b) =>
         this.totalesSupermercado[a] < this.totalesSupermercado[b] ? a : b
       );
     }
+
     console.log('Totales por supermercado:', this.totalesSupermercado);
     console.log('Supermercado más barato:', this.supermercadoMasBarato);
   }
 
-  obtenerPrecioMasBajo(producto: any): number | undefined {
-    const precios = Object.values(producto.precios).filter(
-      (precio) => typeof precio === 'number'
-    ) as number[];
+  // Actualizar el método obtenerPrecioMasBajo
+  obtenerPrecioMasBajo(producto: productosComparados): number | undefined {
+    const precios = Object.values(producto.precios)
+      .filter((estadoProducto) => estadoProducto.precio !== undefined)
+      .map((estadoProducto) => estadoProducto.precio!) as number[];
+
     return precios.length > 0 ? Math.min(...precios) : undefined;
   }
 
@@ -545,9 +608,11 @@ export class ComparadorProductosPreciosComponent implements OnInit {
   verSucursales(filtros: filtrosSucursal): void {
     const base64params = btoa(JSON.stringify(filtros));
 
-    console.log ("filtros " , filtros)
+    console.log('filtros ', filtros);
 
-    const url = `/home/buscador-sucursales?data=${encodeURIComponent(base64params)}`;
+    const url = `/home/buscador-sucursales?data=${encodeURIComponent(
+      base64params
+    )}`;
 
     window.open(url, '_blank');
   }
