@@ -13,24 +13,14 @@
 
   <!-- Ícono de Carrito con contador -->
   <button mat-icon-button (click)="toggleCart()" class="cart-button">
-    <mat-icon
-      [matBadge]="cartItems.length > 0 ? cartItems.length : null"
-      matBadgeColor="warn"
-      matBadgeSize="small"
-      >shopping_cart</mat-icon
-    >
+    <mat-icon [matBadge]="cartItems.length > 0 ? cartItems.length : null" matBadgeColor="warn"
+      matBadgeSize="small">shopping_cart</mat-icon>
   </button>
 </mat-toolbar>
 
 <!-- Menú Lateral -->
 <mat-sidenav-container>
-  <mat-sidenav
-    #sidenav
-    mode="over"
-    [(opened)]="isSidebarOpen"
-    (closed)="closeMenus()"
-    class="sidebar"
-  >
+  <mat-sidenav #sidenav mode="over" [(opened)]="isSidebarOpen" (closed)="closeMenus()" class="sidebar">
     <div class="sidenav-header">
       <!-- <button mat-icon-button class="close-btn" (click)="closeMenus()">
         <mat-icon>close</mat-icon>
@@ -57,18 +47,9 @@
     <div class="language-selector">
       <mat-form-field appearance="fill">
         <mat-label i18n>Idioma</mat-label>
-        <mat-select
-          [(value)]="selectedLanguage"
-          (selectionChange)="changeLanguage($event.value)"
-        >
-          <mat-option
-            *ngFor="let idioma of idiomas"
-            [value]="idioma.cod_idioma"
-          >
-            <img
-              [src]="'flags/' + idioma.cod_idioma + '.png'"
-              class="flag-icon"
-            />
+        <mat-select [(value)]="selectedLanguage" (selectionChange)="changeLanguage($event.value)">
+          <mat-option *ngFor="let idioma of idiomas" [value]="idioma.cod_idioma">
+            <img [src]="'flags/' + idioma.cod_idioma + '.png'" class="flag-icon" />
             {{ idioma.nom_idioma }}
           </mat-option>
         </mat-select>
@@ -77,13 +58,7 @@
   </mat-sidenav>
 
   <!-- Carrito -->
-  <mat-sidenav
-    #cartSidenav
-    [opened]="isCartOpen"
-    mode="over"
-    position="end"
-    (closedStart)="closeMenus()"
-  >
+  <mat-sidenav #cartSidenav [opened]="isCartOpen" mode="over" position="end" (closedStart)="closeMenus()">
     <mat-toolbar color="accent">
       <span i18n>Carrito</span>
       <!-- <span class="toolbar-spacer"></span>
@@ -95,50 +70,25 @@
     <div class="cart-content">
       <div *ngIf="cartItems.length > 0; else emptyCart">
         <mat-list>
-          <mat-list-item
-            *ngFor="let product of cartItems"
-            class="cart-list-item"
-          >
-            <img
-              matListAvatar
-              [src]="product.imagen"
-              alt="Imagen del producto"
-              class="cart-product-img"
-            />
+          <mat-list-item *ngFor="let product of cartItems" class="cart-list-item">
+            <img matListAvatar [src]="product.imagen" alt="Imagen del producto" class="cart-product-img" />
             <div class="cart-product-info">
               <div class="cart-product-name">{{ product.nom_producto }}</div>
               <div class="cart-product-desc">{{ product.desc_producto }}</div>
             </div>
-            <button
-              mat-icon-button
-              color="warn"
-              (click)="borrarDelCarrito(product)"
-              class="cart-remove-btn"
-            >
+            <button mat-icon-button color="warn" (click)="borrarDelCarrito(product)" class="cart-remove-btn">
               <mat-icon>remove_shopping_cart</mat-icon>
             </button>
           </mat-list-item>
         </mat-list>
 
         <!-- Botón para vaciar el carrito -->
-        <button
-          mat-raised-button
-          color="warn"
-          class="full-width-btn"
-          (click)="limpiarCarrito()"
-          i18n
-        >
+        <button mat-raised-button color="warn" class="full-width-btn" (click)="limpiarCarrito()" i18n>
           <mat-icon>delete</mat-icon>
           Vaciar Carrito
         </button>
 
-        <button
-          mat-raised-button
-          color="primary"
-          class="full-width-btn"
-          (click)="iniciarComparacion()"
-          i18n
-        >
+        <button mat-raised-button color="primary" class="full-width-btn" (click)="iniciarComparacion()" i18n>
           Comparar Precios
         </button>
       </div>
@@ -178,64 +128,36 @@
             <!-- Categoría -->
             <mat-form-field appearance="outline">
               <mat-label i18n>Categoría</mat-label>
-              <mat-select
-                [(ngModel)]="filtroSeleccionado.categoria"
-                (selectionChange)="filtrarProductos()"
-              >
+              <mat-select [(ngModel)]="filtroSeleccionado.categoria" (selectionChange)="filtrarProductos()">
                 <mat-option value="" i18n>Todas</mat-option>
-                <mat-option
-                  *ngFor="let cat of categoriasDisponibles"
-                  [value]="cat"
-                  >{{ cat }}</mat-option
-                >
+                <mat-option *ngFor="let cat of categoriasDisponibles" [value]="cat">{{ cat }}</mat-option>
               </mat-select>
             </mat-form-field>
 
             <!-- Marca -->
             <mat-form-field appearance="outline">
               <mat-label i18n>Marca</mat-label>
-              <mat-select
-                [(ngModel)]="filtroSeleccionado.marca"
-                (selectionChange)="filtrarProductos()"
-              >
+              <mat-select [(ngModel)]="filtroSeleccionado.marca" (selectionChange)="filtrarProductos()">
                 <mat-option value="" i18n>Todas</mat-option>
-                <mat-option
-                  *ngFor="let marca of marcasDisponibles"
-                  [value]="marca"
-                  >{{ marca }}</mat-option
-                >
+                <mat-option *ngFor="let marca of marcasDisponibles" [value]="marca">{{ marca }}</mat-option>
               </mat-select>
             </mat-form-field>
 
             <!-- Rubro -->
             <mat-form-field appearance="outline">
               <mat-label i18n>Rubro</mat-label>
-              <mat-select
-                [(ngModel)]="filtroSeleccionado.rubro"
-                (selectionChange)="filtrarProductos()"
-              >
+              <mat-select [(ngModel)]="filtroSeleccionado.rubro" (selectionChange)="filtrarProductos()">
                 <mat-option value="" i18n>Todos</mat-option>
-                <mat-option
-                  *ngFor="let rubro of rubrosDisponibles"
-                  [value]="rubro"
-                  >{{ rubro }}</mat-option
-                >
+                <mat-option *ngFor="let rubro of rubrosDisponibles" [value]="rubro">{{ rubro }}</mat-option>
               </mat-select>
             </mat-form-field>
 
             <!-- Tipo de Producto -->
             <mat-form-field appearance="outline">
               <mat-label i18n>Tipo de Producto</mat-label>
-              <mat-select
-                [(ngModel)]="filtroSeleccionado.tipo"
-                (selectionChange)="filtrarProductos()"
-              >
+              <mat-select [(ngModel)]="filtroSeleccionado.tipo" (selectionChange)="filtrarProductos()">
                 <mat-option value="" i18n>Todos</mat-option>
-                <mat-option
-                  *ngFor="let tipo of tiposDisponibles"
-                  [value]="tipo"
-                  >{{ tipo }}</mat-option
-                >
+                <mat-option *ngFor="let tipo of tiposDisponibles" [value]="tipo">{{ tipo }}</mat-option>
               </mat-select>
             </mat-form-field>
           </div>
@@ -243,50 +165,30 @@
       </mat-card>
 
       <!-- Lista de Productos -->
-      <div
-        *ngIf="filteredProducts.length > 0; else emptyList"
-        class="products-grid"
-      >
-        <mat-card
-          *ngFor="
+      <div *ngIf="filteredProducts.length > 0; else emptyList" class="products-grid">
+        <mat-card *ngFor="
             let product of filteredProducts | buscadorProductos : searchTerm
-          "
-          class="product-card"
-        >
-          <img
-            mat-card-image
-            [src]="product.imagen"
-            [alt]="product.nom_producto"
-            (click)="verDetalles(product)"
-          />
+          " class="product-card">
+          <img mat-card-image [src]="product.imagen" [alt]="product.nom_producto" (click)="verDetalles(product)" />
           <mat-card-header>
             <mat-card-title>{{ product.nom_producto }}</mat-card-title>
             <mat-card-subtitle>{{ product.nom_marca }}</mat-card-subtitle>
           </mat-card-header>
           <mat-card-actions>
-            <button
-              mat-raised-button
-              [color]="productoEnCarrito(product) ? 'accent' : 'primary'"
-              [disabled]="productoEnCarrito(product)"
-              (click)="agregarAlCarrito(product)"
-              i18n
-            >
+            <button mat-raised-button [color]="productoEnCarrito(product) ? 'accent' : 'primary'"
+              [disabled]="productoEnCarrito(product)" (click)="agregarAlCarrito(product)" i18n>
               <mat-icon>{{
                 productoEnCarrito(product)
-                  ? "check_circle"
-                  : "add_shopping_cart"
-              }}</mat-icon>
+                ? "check_circle"
+                : "add_shopping_cart"
+                }}</mat-icon>
               {{
-                productoEnCarrito(product)
-                  ? "En el Carrito"
-                  : "Agregar al Carrito"
+              productoEnCarrito(product)
+              ? "En el Carrito"
+              : "Agregar al Carrito"
               }}
             </button>
-            <button
-              mat-raised-button
-              color="accent"
-              (click)="verDetalles(product)"
-            >
+            <button mat-raised-button color="accent" (click)="verDetalles(product)">
               <mat-icon>info</mat-icon>
               <span i18n>Ver Detalles</span>
             </button>
@@ -324,36 +226,20 @@
           <div class="location-selectors">
             <mat-form-field appearance="outline">
               <mat-label i18n>Provincia</mat-label>
-              <mat-select
-                [(ngModel)]="provinciaSelected"
-                (selectionChange)="onProvinciaChange($event)"
-              >
+              <mat-select [(ngModel)]="provinciaSelected" (selectionChange)="onProvinciaChange($event)">
                 <mat-option value="" i18n>Seleccione una Provincia</mat-option>
-                <mat-option
-                  *ngFor="let provincia of provincias"
-                  [value]="provincia.cod_provincia"
-                >
+                <mat-option *ngFor="let provincia of provincias" [value]="provincia.cod_provincia">
                   {{ provincia.nom_provincia }}
                 </mat-option>
               </mat-select>
             </mat-form-field>
 
             <!-- Selección de Localidad -->
-            <mat-form-field
-              appearance="outline"
-              *ngIf="showLocalidades"
-              style="margin-left: 15px"
-            >
+            <mat-form-field appearance="outline" *ngIf="showLocalidades" style="margin-left: 15px">
               <mat-label i18n>Localidad</mat-label>
-              <mat-select
-                [(ngModel)]="localidadSelected"
-                (selectionChange)="onLocalidadChange($event)"
-              >
+              <mat-select [(ngModel)]="localidadSelected" (selectionChange)="onLocalidadChange($event)">
                 <mat-option value="" i18n>Seleccione una Localidad</mat-option>
-                <mat-option
-                  *ngFor="let localidad of localidades"
-                  [value]="localidad.nro_localidad"
-                >
+                <mat-option *ngFor="let localidad of localidades" [value]="localidad.nro_localidad">
                   {{ localidad.nom_localidad }}
                 </mat-option>
               </mat-select>
@@ -361,15 +247,8 @@
           </div>
 
           <!-- Tabla de Comparación -->
-          <div
-            *ngIf="productosComparados.length > 0"
-            class="comparison-table-container"
-          >
-            <table
-              mat-table
-              [dataSource]="productosComparados"
-              class="comparison-table"
-            >
+          <div *ngIf="productosComparados.length > 0" class="comparison-table-container">
+            <table mat-table [dataSource]="productosComparados" class="comparison-table">
               <!-- Columna de Producto -->
               <ng-container matColumnDef="producto">
                 <th mat-header-cell *matHeaderCellDef i18n class="header-bold">
@@ -377,14 +256,10 @@
                 </th>
                 <td mat-cell *matCellDef="let producto" class="product-cell">
                   <div class="product-info">
-                    <img
-                      [src]="producto.imagen"
-                      [alt]="producto.nom_producto"
-                      class="product-image"
-                    />
+                    <img [src]="producto.imagen" [alt]="producto.nom_producto" class="product-image" />
                     <span class="product-name">{{
                       producto.nom_producto
-                    }}</span>
+                      }}</span>
                     <span *ngIf="producto.vigente === 'N'" class="warning-chip">
                       <mat-chip color="warn">
                         <mat-icon>warning</mat-icon>
@@ -396,115 +271,73 @@
               </ng-container>
 
               <!-- Columnas dinámicas de Supermercados -->
-              <ng-container
-                *ngFor="let supermercado of supermercados"
-                [matColumnDef]="supermercado"
-              >
-                <th
-                  mat-header-cell
-                  *matHeaderCellDef
-                  [class.supermercado-ganador]="
+              <ng-container *ngFor="let supermercado of supermercados" [matColumnDef]="supermercado">
+                <th mat-header-cell *matHeaderCellDef [class.supermercado-ganador]="
                     supermercado === supermercadoMasBarato
-                  "
-                >
+                  ">
                   <div class="header-content">
-                    <span>{{ supermercado }}</span>
+                    <span> Supermercado: {{ supermercado }}</span>
                     <mat-icon *ngIf="supermercado === supermercadoMasBarato">
                       emoji_events
                     </mat-icon>
                   </div>
                 </th>
 
-                <td
-                  mat-cell
-                  *matCellDef="let producto"
-                  [class.precio-barato]="
+                <td mat-cell *matCellDef="let producto" [class.precio-barato]="
                     esPrecioMasBajo(producto.precios[supermercado], producto)
-                  "
-                  [class.supermercado-ganador]="
+                  " [class.supermercado-ganador]="
                     supermercado === supermercadoMasBarato &&
                     producto.precios[supermercado]?.estado === 'con_precio'
-                  "
-                >
+                  ">
                   <div class="price-cell">
                     <!-- Mostrar precio normal -->
-                    <span
-                      *ngIf="
+                    <span *ngIf="
                         producto.precios[supermercado]?.estado === 'con_precio'
-                      "
-                      class="price"
-                    >
+                      " class="price">
                       {{
-                        producto.precios[supermercado].precio
-                          | currency : "ARS" : "symbol" : "1.2-2"
+                      producto.precios[supermercado].precio
+                      | currency : "ARS" : "symbol" : "1.2-2"
                       }}
                     </span>
 
                     <!-- Mostrar warning para sin stock -->
-                    <div
-                      *ngIf="
+                    <div *ngIf="
                         producto.precios[supermercado]?.estado === 'sin_stock'
-                      "
-                      class="warning-container"
-                    >
-                      <mat-icon
-                        class="warning-icon sin-stock-icon"
-                        [matTooltip]="
+                      " class="warning-container">
+                      <mat-icon class="warning-icon sin-stock-icon" [matTooltip]="
                           producto.precios[supermercado].mensaje_tooltip
-                        "
-                        matTooltipPosition="above"
-                      >
+                        " matTooltipPosition="above">
                         inventory_2
                       </mat-icon>
                     </div>
 
                     <!-- Mostrar warning para sin precio -->
-                    <div
-                      *ngIf="
+                    <div *ngIf="
                         producto.precios[supermercado]?.estado === 'sin_precio'
-                      "
-                      class="warning-container"
-                    >
-                      <mat-icon
-                        class="warning-icon sin-precio-icon"
-                        [matTooltip]="
+                      " class="warning-container">
+                      <mat-icon class="warning-icon sin-precio-icon" [matTooltip]="
                           producto.precios[supermercado].mensaje_tooltip
-                        "
-                        matTooltipPosition="above"
-                      >
+                        " matTooltipPosition="above">
                         price_change
                       </mat-icon>
                     </div>
 
                     <!-- Mostrar warning para sin precio actual -->
-                    <div
-                      *ngIf="
+                    <div *ngIf="
                         producto.precios[supermercado]?.estado ===
                         'sin_precio_actual'
-                      "
-                      class="warning-container"
-                    >
-                      <mat-icon
-                        class="warning-icon sin-precio-actual-icon"
-                        [matTooltip]="
+                      " class="warning-container">
+                      <mat-icon class="warning-icon sin-precio-actual-icon" [matTooltip]="
                           producto.precios[supermercado].mensaje_tooltip
-                        "
-                        matTooltipPosition="above"
-                      >
+                        " matTooltipPosition="above">
                         schedule
                       </mat-icon>
                     </div>
 
                     <!-- Fallback si no hay datos -->
-                    <div
-                      *ngIf="!producto.precios[supermercado]"
-                      class="warning-container"
-                    >
-                      <mat-icon
-                        class="warning-icon no-data-icon"
-                        matTooltip="No hay información disponible"
-                        matTooltipPosition="above"
-                      >
+                    <div *ngIf="!producto.precios[supermercado]" class="warning-container">
+                      <mat-icon class="warning-icon no-data-icon" matTooltip="No hay información disponible"
+                        matTooltipPosition="above">
                         help_outline
                       </mat-icon>
                     </div>
@@ -566,8 +399,8 @@
                       <p class="savings" i18n>
                         Total:
                         {{
-                          totalesSupermercado[supermercadoMasBarato]
-                            | currency : "ARS" : "symbol" : "1.2-2"
+                        totalesSupermercado[supermercadoMasBarato]
+                        | currency : "ARS" : "symbol" : "1.2-2"
                         }}
                       </p>
                     </div>
@@ -578,10 +411,7 @@
           </div>
 
           <!-- Mensaje cuando no hay productos para comparar -->
-          <div
-            *ngIf="productosComparados.length === 0 && localidadSelected"
-            class="no-products-message"
-          >
+          <div *ngIf="productosComparados.length === 0 && localidadSelected" class="no-products-message">
             <mat-card class="empty-state">
               <mat-card-content>
                 <mat-icon>info</mat-icon>
@@ -596,20 +426,14 @@
             <mat-icon>arrow_back</mat-icon>
             Volver a Productos
           </button>
-          <button
-            mat-raised-button
-            color="primary"
-            (click)="
+          <button mat-raised-button color="primary" (click)="
               verSucursales({
                 cod_pais: 'AR',
                 cod_provincia: provinciaSelected || '',
                 nro_localidad: localidadSelected || '',
                 nro_supermercado: getNroSupermercado(supermercadoMasBarato)
               })
-            "
-            i18n
-            [disabled]="this.productosComparados.length === 0"
-          >
+            " i18n [disabled]="this.productosComparados.length === 0">
             <mat-icon>refresh</mat-icon>
             Ver Sucursales
           </button>
@@ -632,11 +456,8 @@
     <mat-card-content>
       <!-- Imagen del Producto -->
       <div class="product-image-container">
-        <img
-          [src]="productoSeleccionado.imagen"
-          [alt]="productoSeleccionado.nom_producto"
-          class="product-modal-image"
-        />
+        <img [src]="productoSeleccionado.imagen" [alt]="productoSeleccionado.nom_producto"
+          class="product-modal-image" />
       </div>
 
       <!-- Detalles del Producto -->
