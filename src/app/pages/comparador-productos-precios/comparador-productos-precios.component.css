@@ -333,19 +333,45 @@
   margin-right: 8px;
 }
 
-/* Estilo para los badges del carrito */
-.mat-badge-content {
-  font-weight: 600;
-  font-size: 12px;
+/* CARRITO */
+.cart-product-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 12px;
+  padding: 4px 0;
 }
 
-/* Mejorar el espaciado en las listas */
-.cart-content mat-list-item {
-  padding: 12px 0;
+.cart-product-img {
+  width: 32px;
+  height: 32px;
+  margin-left: 0px;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  flex-shrink: 0;
 }
 
-.cart-content mat-list-item:not(:last-child) {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+.cart-product-name {
+  flex: 1 1 auto;         /* <-- Cambia flex-grow a flex: 1 1 auto */
+  min-width: 0;           /* <-- Permite que el texto se recorte correctamente */
+  font-weight: 500;
+  font-size: 13px;
+  color: #2D336B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: 2px;
+}
+
+.cart-remove-btn {
+  margin-left: 16px;
+  padding: 4px;
+  min-width: 20px;
+  min-height: 20px;
+  border-radius: 5px;
+  transition: background 0.2s;
+  flex-shrink: 0;
 }
 
 /* Estilo para el contenido del sidenav */

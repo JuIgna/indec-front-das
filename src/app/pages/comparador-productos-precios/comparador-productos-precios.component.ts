@@ -34,6 +34,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { filtrosSucursal } from '../../components/interfaces/sucursal';
+import Swal, { SweetAlertOptions } from 'sweetalert2';
+import { alertContent } from '../../components/interfaces/mensajes';
 
 @Component({
   selector: 'app-comparador-productos-precios',
@@ -76,8 +78,11 @@ export class ComparadorProductosPreciosComponent implements OnInit {
   cartItems: Producto[] = [];
   products: Producto[] = [];
   filteredProducts: Producto[] = [];
-  isLoading = true;
+  isLoadingProductos: boolean = false;
+  isLoadingComparacion: boolean = false;
+  isSupermercadoGanador: boolean = false;
   mostrarComparacion: boolean = false;
+  seCompararonProductos: boolean = false;
   showLocalidades: boolean = false;
   localidades: localidades[] = [];
   searchTerm: string = '';
@@ -100,6 +105,18 @@ export class ComparadorProductosPreciosComponent implements OnInit {
   mostrarModal: boolean = false;
   productoSeleccionado: any = null;
 
+    alertContent: alertContent = { title: '', text: '' };
+  
+    private mensajeConfig: SweetAlertOptions = {
+      width: '320px',
+      heightAuto: false,
+      padding: '0px',
+      customClass: {
+        popup: 'swal2-small-modal swal2-square-modal',
+      },
+      confirmButtonText: 'OK', // valor default que si necesitamos lo cambiamos por traducciones
+    };
+
   constructor(
     private productService: ProductService,
     private router: Router,
@@ -112,27 +129,48 @@ export class ComparadorProductosPreciosComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.productService.getProducts().subscribe(
-      (data) => {
-        this.products = data;
-        this.filteredProducts = this.products;
-        console.log(this.products);
-        this.actualizarOpcionesFiltro();
-        setTimeout(() => {
-          this.isLoading = false;
-        }, 2000);
-      },
-      (error) => {
-        console.error('Error al obtener productos:', error);
-        alert('No se pudo obtener la lista de productos.');
-        this.isLoading = false;
-      }
-    );
+    this.getProductos();
 
-    this.obtenerIdiomasService.getIdiomas().subscribe(
+    this.getIdiomas();
+
+    this.getProvincias();
+
+    this.getSupermercados();
+
+    this.detectLanguage();
+
+    const storedCart = sessionStorage.getItem('cartItems');
+    if (storedCart) {
+      this.cartItems = JSON.parse(storedCart);
+    }
+  }
+
+  getSupermercados(): void {
+    this.supermercadosService.getSupermercados().subscribe(
+      (data) => {
+        this.todosSupermercados = data;
+        console.log('Supermercados Cargados', this.todosSupermercados);
+      },
+      () => {
+          if (this.selectedLanguage == 'en') this.alertContent = {text: 'Cannot get supermarket list', title: 'Error'};
+          else this.alertContent = { text: 'No se pudo obtener la lista de supermercados', title: 'Error'};
+
+          Swal.fire({
+          ...this.mensajeConfig,
+          title: this.alertContent.title,
+          text: this.alertContent.text,
+          icon: 'error',
+          });
+      }
+    );    
+
+  }
+
+  getIdiomas(): void{
+        this.obtenerIdiomasService.getIdiomas().subscribe(
       (data) => {
         this.idiomas = data;
-        console.log('Idiomas cargados:', this.idiomas);
+        // console.log('Idiomas cargados:', this.idiomas);
         const idioma = this.idiomas.find(
           (lang) => lang.cod_idioma === this.selectedLanguage
         );
@@ -143,31 +181,48 @@ export class ComparadorProductosPreciosComponent implements OnInit {
           }
         }
       },
-      (error) => {
-        console.error('Error al obtener idiomas:', error);
-        alert('No se pudo obtener la lista de idiomas.');
+      () => {
+        if (this.selectedLanguage == 'en') this.alertContent = {text: 'Cannot get languages list', title: 'Error'};
+          else this.alertContent = { text: 'No se pudo obtener la lista de idiomas', title: 'Error'};
+
+          Swal.fire({
+          ...this.mensajeConfig,
+          title: this.alertContent.title,
+          text: this.alertContent.text,
+          icon: 'error',
+          });
       }
     );
 
-    this.getProvincias();
+  }
 
-    const storedCart = sessionStorage.getItem('cartItems');
-    if (storedCart) {
-      this.cartItems = JSON.parse(storedCart);
-    }
-
-    this.supermercadosService.getSupermercados().subscribe(
+  getProductos(): void{
+    this.isLoadingProductos = true;
+      this.productService.getProducts().subscribe(
       (data) => {
-        this.todosSupermercados = data;
-        console.log('Supermercados Cargados', this.todosSupermercados);
+        this.products = data;
+        this.filteredProducts = this.products;
+        console.log(this.products);
+        this.actualizarOpcionesFiltro();
+        // this.isLoadingProductos = false;
+        setTimeout(() => {
+           this.isLoadingProductos = false;
+         }, 1200);
+         this.cargarTraducciones(this.selectedLanguage);
       },
-      (error) => {
-        console.error('No se pudo obtener los supermercados', error);
-        alert('No se pudo obtener los supermercados');
+      () => {
+        if (this.selectedLanguage == 'en') this.alertContent = {text: 'Cannot get products list', title: 'Error'};
+          else this.alertContent = { text: 'No se pudo obtener la lista de productos', title: 'Error'};
+
+          Swal.fire({
+          ...this.mensajeConfig,
+          title: this.alertContent.title,
+          text: this.alertContent.text,
+          icon: 'error',
+          });
+          this.isLoadingProductos = false;
       }
     );
-
-    this.detectLanguage();
   }
 
   getProvincias(): void {
@@ -176,9 +231,16 @@ export class ComparadorProductosPreciosComponent implements OnInit {
         this.provincias = data;
         console.log('Provincias cargadas', this.provincias);
       },
-      (error) => {
-        console.error('No se pudo obtener las provincias ', error);
-        alert('No se pudo obtener la lista de provincias');
+      () => {
+          if (this.selectedLanguage == 'en') this.alertContent = {text: 'Cannot get province list', title: 'Error'};
+          else this.alertContent = { text: 'No se pudo obtener la lista de provincias', title: 'Error'};
+
+          Swal.fire({
+          ...this.mensajeConfig,
+          title: this.alertContent.title,
+          text: this.alertContent.text,
+          icon: 'error',
+          });
       }
     );
   }
@@ -192,26 +254,53 @@ export class ComparadorProductosPreciosComponent implements OnInit {
             this.localidades = data;
             this.showLocalidades = true;
             this.localidadSelected = null;
-            sessionStorage.removeItem('nro_localidad');
+            // sessionStorage.removeItem('nro_localidad');
             console.log('Localidades cargadas:', this.localidades);
           },
           (error) => {
-            console.error('Error al obtener las localidades:', error);
-            alert(
-              'No se pudo obtener la lista de localidades. Verifique la consola para más detalles.'
-            );
-          }
-        );
+          if (this.selectedLanguage == 'en') this.alertContent = {text: 'Cannot get cities list', title: 'Error'};
+            else this.alertContent = { text: 'No se pudo obtener la lista de localidades', title: 'Error'};
+
+            Swal.fire({
+            ...this.mensajeConfig,
+            title: this.alertContent.title,
+            text: this.alertContent.text,
+            icon: 'error',
+            });
+            }
+          );
     } else {
-      console.error('No esta definida la provincia.');
+        if (this.selectedLanguage == 'en') this.alertContent = {text: 'No esta definida la provincia', title: 'Error'};
+          else this.alertContent = { text: 'Province not defined', title: 'Error'};
+
+          Swal.fire({
+          ...this.mensajeConfig,
+          title: this.alertContent.title,
+          text: this.alertContent.text,
+          icon: 'error',
+          });
+        }
+  }
+
+  isCartEmpty(): boolean {
+        if (this.cartItems.length === 0) {
+        if (this.selectedLanguage == 'en') this.alertContent = {text: 'Cannot do comparison, cart is empty', title: 'Attention'};
+          else this.alertContent = { text: 'Debe agregar productos al carrito', title: 'Atención'};
+
+          Swal.fire({
+          ...this.mensajeConfig,
+          title: this.alertContent.title,
+          text: this.alertContent.text,
+          icon: 'warning',
+          });
+      return true;
     }
+    return false;
   }
 
   iniciarComparacion(): void {
-    if (this.cartItems.length === 0) {
-      alert('Debe agregar productos al carrito antes de comparar precios.');
-      return;
-    }
+    if (this.isCartEmpty()) return;
+
     this.isCartOpen = false;
 
     this.mostrarComparacion = true;
@@ -233,6 +322,7 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     this.totalesSupermercado = {};
     this.supermercadoMasBarato = '';
     this.displayedColumns = ['producto'];
+    this.getProductos();
   }
 
   // Método auxiliar para determinar si es el precio más bajo
@@ -255,6 +345,9 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     const localidadGuardada = sessionStorage.getItem('nro_localidad');
     if (provinciaGuardada) {
       this.provinciaSelected = provinciaGuardada;
+
+      this.getLocalidades();
+
       this.showLocalidades = true;
     }
     if (localidadGuardada) {
@@ -314,10 +407,18 @@ export class ComparadorProductosPreciosComponent implements OnInit {
         });
         this.actualizarOpcionesFiltro();
       },
-      (error) => {
-        console.error('Error al obtener traducción:', error);
-        alert('No se pudo obtener la traducción.');
-      }
+      () => {
+        if (this.selectedLanguage == 'en') this.alertContent = {text: 'Cannot get translation', title: 'Error'};
+          else this.alertContent = { text: 'No se pudo obtener la traducción', title: 'Error'};
+
+          Swal.fire({
+          ...this.mensajeConfig,
+          title: this.alertContent.title,
+          text: this.alertContent.text,
+          icon: 'error',
+          });
+     
+        }
     );
   }
 
@@ -331,32 +432,58 @@ export class ComparadorProductosPreciosComponent implements OnInit {
       this.guardarCarritoEnCache();
       console.log('Producto agregado al carrito:', product);
     } else {
-      alert('Este producto ya está en el carrito.');
+      if (this.selectedLanguage == 'en') this.alertContent = { text: 'This product is in the cart', title: 'Attention' };
+        else this.alertContent = {text: 'Este producto ya está en el carrito', title: 'Atención' };
+        Swal.fire({
+          ...this.mensajeConfig,
+          title: this.alertContent.title,
+          text: this.alertContent.text,
+          icon: 'info',
+        });
     }
   }
 
   borrarDelCarrito(product: any) {
-    const confirmDelete = window.confirm(
-      `¿Seguro que quieres eliminar "${product.nom_producto}" del carrito?`
-    );
-    if (confirmDelete) {
+    if (this.selectedLanguage == 'en') this.alertContent = { text: 'Are you sure you want to remove ' + product.nom_producto + ' from the cart?', title: 'Attention' };
+      else this.alertContent = { text: '¿Seguro que quieres eliminar ' + product.nom_producto + ' del carrito?', title: 'Atención' };
+    Swal.fire({
+      ...this.mensajeConfig,
+      title: this.alertContent.title,
+      text: this.alertContent.text,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: this.selectedLanguage == 'en' ? 'Yes, remove' : 'Sí, quitar',
+      cancelButtonText: this.selectedLanguage == 'en' ? 'Cancel' : 'Cancelar',
+    }).then((result) => {
+      if (result.isConfirmed) {
       this.cartItems = this.cartItems.filter(
         (item) => item.cod_barra !== product.cod_barra
       );
       this.guardarCarritoEnCache();
-      console.log('Carrito actualizado:', this.cartItems);
-    }
+      console.log('Carrito Actualizado:', this.cartItems);
+      }
+    });
+
   }
 
   limpiarCarrito() {
-    const confirmClear = window.confirm(
-      '¿Seguro que quieres limpiar todo el carrito?'
-    );
-    if (confirmClear) {
+    if (this.selectedLanguage == 'en') this.alertContent = { text: 'Are you sure you want to clear the cart?', title: 'Attention' };
+    else this.alertContent = { text: '¿Seguro que quieres limpiar todo el carrito?', title: 'Atención' };
+    Swal.fire({
+      ...this.mensajeConfig,
+      title: this.alertContent.title,
+      text: this.alertContent.text,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: this.selectedLanguage == 'en' ? 'Yes, clear' : 'Sí, limpiar',
+      cancelButtonText: this.selectedLanguage == 'en' ? 'Cancel' : 'Cancelar',
+    }).then((result) => {
+      if (result.isConfirmed) {
       this.cartItems = [];
       this.guardarCarritoEnCache();
       console.log('Carrito limpio:', this.cartItems);
-    }
+      }
+    });
   }
 
   limpiarCarritoSinPregunta() {
@@ -449,16 +576,29 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     this.localidadSelected = event.value;
     sessionStorage.setItem('nro_localidad', this.localidadSelected || '');
     console.log('Localidad seleccionada:', this.localidadSelected);
-    if (this.localidadSelected) {
-      this.compararProductos();
-    }
+    // if (this.localidadSelected) {
+    //   this.compararProductos();
+    // }
   }
 
   compararProductos(): void {
+    if (this.isCartEmpty()) return; 
+
     if (!this.localidadSelected) {
-      alert('Debe seleccionar una localidad antes de comparar precios.');
+      if (this.selectedLanguage == 'en') this.alertContent = { text: 'You must select a city before compare prices', title: 'Attention' };
+        else this.alertContent = {text: 'Debe seleccionar una localidad antes de comparar precios', title: 'Atención' };
+        Swal.fire({
+          ...this.mensajeConfig,
+          title: this.alertContent.title,
+          text: this.alertContent.text,
+          icon: 'info',
+        });
       return;
     }
+
+    this.isLoadingComparacion = true;
+    this.supermercadoMasBarato = '';
+    this.isSupermercadoGanador = false;
 
     const codigosBarra = this.cartItems.map((item) => item.cod_barra);
     console.log(
@@ -473,7 +613,16 @@ export class ComparadorProductosPreciosComponent implements OnInit {
       .subscribe(
         (data) => {
           if (!data || data.length === 0) {
-            alert('No se encontraron estos productos en esta localidad.');
+            this.seCompararonProductos = true;
+            if (this.selectedLanguage == 'en') this.alertContent = { text: 'No products found on this city', title: 'Attention' };
+              else this.alertContent = {text: 'No se encontraron estos productos en esta localidad', title: 'Atención' };
+              Swal.fire({
+                ...this.mensajeConfig,
+                title: this.alertContent.title,
+                text: this.alertContent.text,
+                icon: 'info',
+              });
+
             this.productosComparados = [];
             return;
           }
@@ -488,12 +637,20 @@ export class ComparadorProductosPreciosComponent implements OnInit {
           this.displayedColumns = ['producto', ...this.supermercados];
           this.calcularTotales();
           this.dataSource.data = this.productosComparados;
+          this.isLoadingComparacion = false;
         },
-        (error) => {
-          console.error('Error al comparar los productos:', error);
-          alert(
-            'No se pudo obtener la lista de productos comparados. Verifique la consola.'
-          );
+        () => {
+        if (this.selectedLanguage == 'en') this.alertContent = {text: 'Cannot get products comparison table', title: 'Error'};
+          else this.alertContent = { text: 'No se pudo obtener la tabla de comparación de productos', title: 'Error'};
+          Swal.fire({
+            ...this.mensajeConfig,
+            title: this.alertContent.title,
+            text: this.alertContent.text,
+            icon: 'error',
+          });
+
+          this.seCompararonProductos = false;
+          this.isLoadingComparacion = false;
         }
       );
   }
@@ -507,8 +664,8 @@ export class ComparadorProductosPreciosComponent implements OnInit {
           cod_barra: producto.cod_barra,
           nom_producto: producto.nom_producto,
           imagen: producto.imagen,
-          precios: {}
-       });
+          precios: {},
+        });
       }
 
       const productoActual = productosMap.get(producto.cod_barra)!;
@@ -531,21 +688,21 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     if (producto.sin_stock) {
       return {
         estado: 'sin_stock',
-        mensaje_tooltip: 'Producto sin stock en esta localidad',
+        mensaje_tooltip: this.selectedLanguage == 'en' ? 'Product out of stock in this location' : 'Producto sin stock en esta localidad',
       };
     }
 
     if (producto.sin_precio) {
       return {
         estado: 'sin_precio',
-        mensaje_tooltip: 'No hay precio disponible para este producto',
+        mensaje_tooltip: this.selectedLanguage == 'en' ? 'There is no price available for this product' : 'No hay precio disponible para este producto',
       };
     }
 
     if (producto.sin_precio_actual) {
       return {
         estado: 'sin_precio_actual',
-        mensaje_tooltip: 'No hay precio actualizado para la fecha actual',
+        mensaje_tooltip: this.selectedLanguage == 'en' ? 'There is no updated price for this product' : 'No hay precio actualizado para la fecha actual',
       };
     }
 
@@ -580,6 +737,7 @@ export class ComparadorProductosPreciosComponent implements OnInit {
       this.supermercadoMasBarato = supermercadosConPrecios.reduce((a, b) =>
         this.totalesSupermercado[a] < this.totalesSupermercado[b] ? a : b
       );
+      this.isSupermercadoGanador = true;
     }
 
     console.log('Totales por supermercado:', this.totalesSupermercado);
@@ -599,11 +757,29 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     return this.cartItems.some((item) => item.cod_barra === product.cod_barra);
   }
 
-  verDetalles(producto: any) {
+verDetalles(producto: any) {
+  // Si el idioma es inglés, busca los valores traducidos
+  if (this.selectedLanguage === 'en' && this.traducciones && producto) {
+    this.productoSeleccionado = {
+      ...producto,
+      nom_categoria:
+        this.traducciones.categorias?.find(
+          (cat: { nro_categoria: number }) => cat.nro_categoria === producto.nro_categoria
+        )?.nom_categoria || producto.nom_categoria,
+      nom_rubro:
+        this.traducciones.rubros?.find(
+          (rubro: { nro_rubro: number }) => rubro.nro_rubro === producto.nro_rubro
+        )?.nom_rubro || producto.nom_rubro,
+      nom_tipo_producto:
+        this.traducciones.tipos_productos?.find(
+          (tipo: { nro_tipo_producto: number }) => tipo.nro_tipo_producto === producto.nro_tipo_producto
+        )?.nom_tipo_producto || producto.nom_tipo_producto,
+    };
+  } else {
     this.productoSeleccionado = producto;
-    this.mostrarModal = true;
   }
-
+  this.mostrarModal = true;
+}
   // mandamos al usuario a la pantalla de sucursales
   verSucursales(filtros: filtrosSucursal): void {
     const base64params = btoa(JSON.stringify(filtros));

@@ -27,7 +27,10 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule } from '@angular/material/menu';
 import { SupermercadoInterface } from '../../components/interfaces/supermercado';
-import { filtrosSucursal, SucursalInterface } from '../../components/interfaces/sucursal';
+import {
+  filtrosSucursal,
+  SucursalInterface,
+} from '../../components/interfaces/sucursal';
 import {
   animate,
   state,
@@ -36,7 +39,8 @@ import {
   trigger,
 } from '@angular/animations';
 import { MatPaginator } from '@angular/material/paginator';
-import Swal from 'sweetalert2';
+import Swal, { SweetAlertOptions } from 'sweetalert2';
+import { alertContent } from '../../components/interfaces/mensajes';
 
 @Component({
   selector: 'app-buscador-sucursales',
@@ -93,6 +97,18 @@ export class BuscadorSucursalesComponent implements OnInit {
   selectedLanguageName: string = '';
   idiomas: any[] = [];
   filtrosRuta?: filtrosSucursal;
+  alertContent: alertContent = { title: '', text: '' };
+
+  private mensajeConfig: SweetAlertOptions = {
+    width: '320px',
+    heightAuto: true,
+    padding: '0px',
+    customClass: {
+      popup: 'swal2-small-modal swal2-square-modal',
+    },
+    confirmButtonText: 'OK', // Valor por defecto, puede ser sobrescrito por traducciones
+  };
+  
 
   // Columnas de la tabla
   displayedColumns: string[] = [
@@ -121,7 +137,7 @@ export class BuscadorSucursalesComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     private obtenerIdiomasService: ObtenerIdiomasService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.obtenerProvinciasService.getProvincias(this.cod_pais).subscribe(
@@ -131,11 +147,24 @@ export class BuscadorSucursalesComponent implements OnInit {
         this.selectedProvincia = null;
         this.selectedLocalidad = null;
       },
-      (error) => {
-        console.error('Error al obtener las provincias:', error);
-        alert(
-          'No se pudo obtener la lista de provincias. Verifique la consola para más detalles.'
-        );
+      () => {
+        if (this.selectedLanguage == 'en')
+          this.alertContent = {
+            text: 'Cannot get province list',
+            title: 'Error',
+          };
+        else
+          this.alertContent = {
+            text: 'No se pudo obtener la lista de provincias',
+            title: 'Error',
+          };
+
+        Swal.fire({
+          ...this.mensajeConfig,
+          title: this.alertContent.title,
+          text: this.alertContent.text,
+          icon: 'error',
+        });
       }
     );
 
@@ -150,9 +179,23 @@ export class BuscadorSucursalesComponent implements OnInit {
           this.selectedLanguageName = idioma.nom_idioma;
         }
       },
-      (error) => {
-        console.error('Error al obtener idiomas:', error);
-        alert('No se pudo obtener la lista de idiomas.');
+      () => {
+        if (this.selectedLanguage == 'en')
+          this.alertContent = {
+            text: 'Cannot get language list',
+            title: 'Error',
+          };
+        else
+          this.alertContent = {
+            text: 'No se pudo obtener la lista de idiomas',
+            title: 'Error',
+          };
+        Swal.fire({
+          ...this.mensajeConfig,
+          title: this.alertContent.title,
+          text: this.alertContent.text,
+          icon: 'error',
+        });
       }
     );
 
@@ -161,22 +204,37 @@ export class BuscadorSucursalesComponent implements OnInit {
         this.supermercados = data;
         console.log('Supermercados cargados:', this.supermercados);
       },
-      (error) => {
-        console.error('Error al obtener supermercados:', error);
-        alert('No se pudo obtener la lista de supermercados.');
+      () => {
+        if (this.selectedLanguage == 'en')
+          this.alertContent = {
+            text: 'Cannot get supermarket list',
+            title: 'Error',
+          };
+        else
+          this.alertContent = {
+            text: 'No se pudo obtener la lista de supermercados',
+            title: 'Error',
+          };
+        Swal.fire({
+          ...this.mensajeConfig,
+          title: this.alertContent.title,
+          text: this.alertContent.text,
+          icon: 'error',
+        });
       }
     );
 
     const params = this.route.snapshot.queryParams;
     const encodedData = params['data'];
 
-    console.log (encodedData)
-    if (encodedData){
-      try{ 
+    console.log(encodedData);
+    if (encodedData) {
+      try {
         const decoded = JSON.parse(atob(encodedData));
-        const { cod_pais, cod_provincia, nro_localidad, nro_supermercado } = decoded;
+        const { cod_pais, cod_provincia, nro_localidad, nro_supermercado } =
+          decoded;
 
-        if (cod_pais && cod_provincia && nro_localidad && nro_supermercado){
+        if (cod_pais && cod_provincia && nro_localidad && nro_supermercado) {
           this.nro_localidad = nro_localidad;
           this.selectedLocalidad = nro_localidad;
           this.selectedProvincia = cod_provincia;
@@ -185,17 +243,18 @@ export class BuscadorSucursalesComponent implements OnInit {
 
           this.getSucursales();
         }
-
-      } catch (error){
-        console.error ("Error al decodificar los parametros de las sucursales ", error )
+      } catch (error) {
+        console.error(
+          'Error al decodificar los parametros de las sucursales ',
+          error
+        );
       }
     }
 
     this.detectLanguage();
   }
 
-
-  ngAfterViewInit() { }
+  ngAfterViewInit() {}
 
   detectLanguage(): void {
     const currentPort = window.location.port;
@@ -250,15 +309,25 @@ export class BuscadorSucursalesComponent implements OnInit {
             this.selectedLocalidad = null;
             console.log(this.localidades);
           },
-          (error) => {
-            console.error('Error al obtener las localidades:', error);
-            alert(
-              'No se pudo obtener la lista de localidades. Verifique la consola para más detalles.'
-            );
+          () => {
+            if (this.selectedLanguage == 'en')
+              this.alertContent = {
+                text: 'Cannot get cities list',
+                title: 'Error',
+              };
+            else
+              this.alertContent = {
+                text: 'No se pudo obtener la lista de localidades',
+                title: 'Error',
+              };
+            Swal.fire({
+              ...this.mensajeConfig,
+              title: this.alertContent.title,
+              text: this.alertContent.text,
+              icon: 'error',
+            });
           }
         );
-    } else {
-      console.error('El código de país o provincia no está definido');
     }
   }
 
@@ -273,7 +342,6 @@ export class BuscadorSucursalesComponent implements OnInit {
     console.log(this.nro_supermercado);
   }
 
-
   saveSucursales() {
     this.isLoading = true;
     this.showSucursales = false;
@@ -281,25 +349,31 @@ export class BuscadorSucursalesComponent implements OnInit {
 
     if (this.nro_supermercado.length === 0) {
       this.isLoading = false;
+
+      if (this.selectedLanguage == 'en') {
+        this.alertContent = {
+          text: 'You must select a supermarket before search branches',
+          title: 'Attention',
+        };
+      } else
+        this.alertContent = {
+          text: 'Debe seleccionar un supermercado antes de buscar sucursales',
+          title: 'Atención',
+        };
+
       Swal.fire({
-        title: 'Atención',
-        text: 'Debe seleccionar un supermercado antes de buscar sucursales.',
+        ...this.mensajeConfig,
+        title: this.alertContent.title,
+        text: this.alertContent.text,
         icon: 'warning',
-        width: 360,
-        heightAuto: false,
-        padding: '0.3rem',
-        customClass: {
-          popup: 'swal2-small-modal swal2-square-modal'
-        }
       });
       return;
     }
 
     this.getSucursales();
-
   }
-  
-  getSucursales () {
+
+  getSucursales() {
     this.obtenerSucursalesService
       .getSucursales(this.nro_localidad, this.nro_supermercado)
       .subscribe(
@@ -308,20 +382,29 @@ export class BuscadorSucursalesComponent implements OnInit {
           this.dataSource.data = this.sucursales;
           this.showSucursales = true;
           this.isLoading = false;
-  
+
           //this.actualizarPaginator();
-          console.log('Sucursales obtenidas:', this.sucursales);
+          // console.log('Sucursales obtenidas:', this.sucursales);
         },
-        (error) => {
-          console.error('Error al obtener sucursales:', error);
-          this.isLoading = false;
-          this.showSucursales = true;
-          alert(
-            'No se pudo obtener la lista de sucursales. Verifique la consola para más detalles.'
-          );
+        () => {
+          if (this.selectedLanguage == 'en')
+            this.alertContent = {
+              text: 'Cannot get branches list',
+              title: 'Error',
+            };
+          else
+            this.alertContent = {
+              text: 'No se pudo obtener la lista de sucursales',
+              title: 'Error',
+            };
+          Swal.fire({
+            ...this.mensajeConfig,
+            title: this.alertContent.title,
+            text: this.alertContent.text,
+            icon: 'error',
+          });
         }
       );
-    
   }
 
   formatHorario(horario: string): string[] {
