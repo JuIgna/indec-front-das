@@ -72,7 +72,7 @@ export class ComparadorProductosPreciosComponent implements OnInit {
   paisBase: string = 'AR';
   provinciaSelected: string | null = null;
   provincias: provincia[] = [];
-  localidadSelected: string | null = null;
+  localidadSelected: number | null = null;
   isSidebarOpen = false;
   isCartOpen = false;
   cartItems: Producto[] = [];
@@ -144,8 +144,6 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     if (provinciaSession) {
       this.provinciaSelected = provinciaSession;
       this.getLocalidades ();
-      const localidadSession = sessionStorage.getItem ('nro_localidad');
-      if (localidadSession) this.localidadSelected = localidadSession;
     }
   }
 
@@ -264,12 +262,15 @@ export class ComparadorProductosPreciosComponent implements OnInit {
 
             if (localidadSession) {
             // Verificamos que la localidad guardada exista en las localidades cargadas
+            const localidadNumero = parseInt (localidadSession);
+
             const localidadExiste = this.localidades.some(
-              loc => loc.nro_localidad.toString() === localidadSession
+              loc => loc.nro_localidad === localidadNumero
             );
             
             if (localidadExiste) {
-              this.localidadSelected = localidadSession;
+              this.localidadSelected = localidadNumero;
+              console.log('Localidad restaurada desde cache (número):', this.localidadSelected);
             } else {
               // Si la localidad guardada no existe en la nueva provincia, la limpiamos
               this.localidadSelected = null;
@@ -281,6 +282,7 @@ export class ComparadorProductosPreciosComponent implements OnInit {
           
           console.log('Localidades cargadas:', this.localidades);
           console.log('Localidad restaurada desde cache:', this.localidadSelected);
+          console.log ("provincia guardada cache", sessionStorage.getItem('cod_provincia'));
           },
           (error) => {
           if (this.selectedLanguage == 'en') this.alertContent = {text: 'Cannot get cities list', title: 'Error'};
@@ -327,20 +329,19 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     if (this.isCartEmpty()) return;
 
     this.isCartOpen = false;
-
     this.mostrarComparacion = true;
     this.showLocalidades = false;
     this.productosComparados = [];
     this.supermercados = [];
     this.totalesSupermercado = {};
     this.supermercadoMasBarato = '';
-    this.provinciaSelected = null;
-    this.localidadSelected = null;
+    // this.provinciaSelected = null;
+    // this.localidadSelected = null;
 
     this.provinciaSelected = sessionStorage.getItem('cod_provincia');
-    this.getLocalidades ();
-    // this.localidadSelected = sessionStorage.getItem ('nro_localidad');
-    this.cargarSeleccionGuardada();
+    if (this.provinciaSelected) this.getLocalidades();
+
+    // this.cargarSeleccionGuardada();
   }
 
   volverAProductos(): void {
@@ -371,18 +372,11 @@ export class ComparadorProductosPreciosComponent implements OnInit {
 
   cargarSeleccionGuardada(): void {
     const provinciaGuardada = sessionStorage.getItem('cod_provincia');
-    const localidadGuardada = sessionStorage.getItem('nro_localidad');
     if (provinciaGuardada) {
       this.provinciaSelected = provinciaGuardada;
       this.getLocalidades();
       this.showLocalidades = true;
     }
-    if (localidadGuardada && this.localidades.some(loc => loc.nro_localidad.toString() === localidadGuardada)) {
-    this.localidadSelected = localidadGuardada;
-  } else {
-    this.localidadSelected = null;
-  }
-
   }
 
   detectLanguage(): void {
@@ -615,7 +609,7 @@ onProvinciaChange(event: MatSelectChange): void {
 
   onLocalidadChange(event: MatSelectChange): void {
     this.localidadSelected = event.value;
-    sessionStorage.setItem('nro_localidad', this.localidadSelected || '');
+    sessionStorage.setItem('nro_localidad', this.localidadSelected?.toString() || '');
     console.log('Localidad seleccionada:', this.localidadSelected);
     this.productosComparados = [];
     this.seCompararonProductos = false;
@@ -651,8 +645,10 @@ onProvinciaChange(event: MatSelectChange): void {
       this.localidadSelected
     );  
 
+    const localidadParaAPI = this.localidadSelected.toString();
+
     this.compararPreciosService
-      .getCompararPrecios(codigosBarra, this.localidadSelected)
+      .getCompararPrecios(codigosBarra, localidadParaAPI)
       .subscribe(
         (data) => {
           if (!data || data.length === 0) {

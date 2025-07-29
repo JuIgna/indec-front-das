@@ -21,6 +21,6 @@ export interface SucursalInterface {
 export interface filtrosSucursal {
     cod_pais: string,
     cod_provincia: string,
-    nro_localidad: string,
+    nro_localidad: string | number,
     nro_supermercado: number | null
 }
