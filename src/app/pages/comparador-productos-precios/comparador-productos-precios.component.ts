@@ -7,15 +7,12 @@ import { FormsModule } from '@angular/forms';
 import { ObtenerProvinciasService } from '../../services/lugares/provincias/obtener-provincias.service';
 import { ObtenerLocalidadesService } from '../../services/lugares/localidades/obtener-localidades.service';
 import { BuscadorProductosPipe } from '../../components/pipes/buscador-productos.pipe';
-import {
-  EstadoProducto,
-  Producto,
-  productosComparados,
-} from '../../components/interfaces/producto';
+import { EstadoProducto, Producto, productosComparados } from '../../components/interfaces/producto';
 import { ObtenerIdiomasService } from '../../services/idioma/obtenerIdiomas/obtener-idiomas.service';
 import { ObtenerTraduccionService } from '../../services/idioma/obtenerTraduccion/obtener-traduccion.service';
 import { SupermercadoInterface } from '../../components/interfaces/supermercado';
 import { SupermercadosService } from '../../services/supermercados/supermercados.service';
+import { ObtenerSucursalesService } from '../../services/lugares/sucursales/obtener-sucursales.service';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -33,9 +30,12 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { filtrosSucursal } from '../../components/interfaces/sucursal';
+import { filtrosSucursal, SucursalInterface } from '../../components/interfaces/sucursal';
 import Swal, { SweetAlertOptions } from 'sweetalert2';
 import { alertContent } from '../../components/interfaces/mensajes';
+import { animate, state, style, transition, trigger } from '@angular/animations';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { ViewChild } from '@angular/core';
 
 @Component({
   selector: 'app-comparador-productos-precios',
@@ -59,12 +59,36 @@ import { alertContent } from '../../components/interfaces/mensajes';
     MatChipsModule,
     MatTableModule,
     MatTooltipModule,
+    MatPaginatorModule
   ],
   providers: [ProductService],
   templateUrl: './comparador-productos-precios.component.html',
   styleUrls: ['./comparador-productos-precios.component.css'],
+  animations: [
+    trigger('detailExpand', [
+      state('collapsed', style({ height: '0px', minHeight: '0' })),
+      state('expanded', style({ height: '*' })),
+      transition(
+        'expanded <=> collapsed',
+        animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')
+      ),
+    ]),
+  ],
 })
 export class ComparadorProductosPreciosComponent implements OnInit {
+  // flags de control
+  isLoadingProductos: boolean = false;
+  isLoadingComparacion: boolean = false;
+  isLoadingSucursales: boolean = false; // nuevo: para cargando de sucursales
+  isSupermercadoGanador: boolean = false;
+  mostrarComparacion: boolean = false;
+  seCompararonProductos: boolean = false;
+  showLocalidades: boolean = false;
+  showSucursales: boolean = false;
+  mostrarModal: boolean = false;
+  isSidebarOpen: boolean = false;
+  isCartOpen: boolean = false;
+
   supermercados: string[] = [];
   todosSupermercados: SupermercadoInterface[] = [];
   supermercadoMasBarato: string = '';
@@ -73,17 +97,13 @@ export class ComparadorProductosPreciosComponent implements OnInit {
   provinciaSelected: string | null = null;
   provincias: provincia[] = [];
   localidadSelected: number | null = null;
-  isSidebarOpen = false;
-  isCartOpen = false;
+  localidadGanador: string = '';
+  nrosSupermercadoGanador: string[] = [];
+  sucursales: SucursalInterface[] = [];
+
   cartItems: Producto[] = [];
   products: Producto[] = [];
   filteredProducts: Producto[] = [];
-  isLoadingProductos: boolean = false;
-  isLoadingComparacion: boolean = false;
-  isSupermercadoGanador: boolean = false;
-  mostrarComparacion: boolean = false;
-  seCompararonProductos: boolean = false;
-  showLocalidades: boolean = false;
   localidades: localidades[] = [];
   searchTerm: string = '';
   productosComparados: productosComparados[] = [];
@@ -91,31 +111,30 @@ export class ComparadorProductosPreciosComponent implements OnInit {
   marcasDisponibles: string[] = [];
   rubrosDisponibles: string[] = [];
   tiposDisponibles: string[] = [];
-  filtroSeleccionado = {
-    categoria: '',
-    marca: '',
-    rubro: '',
-    tipo: '',
-  };
+  filtroSeleccionado = { categoria: '', marca: '', rubro: '', tipo: '', };
   selectedLanguage: string = '';
   selectedLanguageName: string = '';
   idiomas: any[] = [];
-  displayedColumns: string[] = ['producto'];
-  dataSource = new MatTableDataSource(this.productosComparados);
-  mostrarModal: boolean = false;
   productoSeleccionado: any = null;
 
-    alertContent: alertContent = { title: '', text: '' };
-  
-    private mensajeConfig: SweetAlertOptions = {
-      width: '320px',
-      heightAuto: false,
-      padding: '0px',
-      customClass: {
-        popup: 'swal2-small-modal swal2-square-modal',
-      },
-      confirmButtonText: 'OK', // valor default que si necesitamos lo cambiamos por traducciones
-    };
+  alertContent: alertContent = { title: '', text: '' };
+  private mensajeConfig: SweetAlertOptions = {
+    width: '320px',
+    heightAuto: false,
+    padding: '0px',
+    customClass: {
+      popup: 'swal2-small-modal swal2-square-modal',
+    },
+    confirmButtonText: 'OK', // valor default que si necesitamos lo cambiamos por traducciones
+  };
+  // variables para tablas
+  tablaComparadoraColumns: string[] = ['producto'];
+  productosComparadosSource = new MatTableDataSource(this.productosComparados);
+  sucursalesColumns: string[] = ['nom_supermercado', 'nom_localidad', 'nom_sucursal', 'ubicacion', 'expand'];
+  sucursalExpanded: SucursalInterface | null = null;
+  sucursalesSource = new MatTableDataSource<SucursalInterface>();
+  // paginator: opcional
+
 
   constructor(
     private productService: ProductService,
@@ -125,8 +144,11 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     private obtenerProvinciasService: ObtenerProvinciasService,
     private obtenerLocalidadesService: ObtenerLocalidadesService,
     private compararPreciosService: CompararPreciosService,
-    private supermercadosService: SupermercadosService
-  ) {}
+    private supermercadosService: SupermercadosService,
+    private sucursalesService: ObtenerSucursalesService
+  ) { }
+
+  @ViewChild(MatPaginator) paginator!: MatPaginator;
 
   ngOnInit() {
     this.getProductos();
@@ -140,10 +162,10 @@ export class ComparadorProductosPreciosComponent implements OnInit {
       this.cartItems = JSON.parse(storedCart);
     }
 
-    const provinciaSession = sessionStorage.getItem ('cod_provincia');
+    const provinciaSession = sessionStorage.getItem('cod_provincia');
     if (provinciaSession) {
       this.provinciaSelected = provinciaSession;
-      this.getLocalidades ();
+      this.getLocalidades();
     }
   }
 
@@ -154,53 +176,22 @@ export class ComparadorProductosPreciosComponent implements OnInit {
         console.log('Supermercados Cargados', this.todosSupermercados);
       },
       () => {
-          if (this.selectedLanguage == 'en') this.alertContent = {text: 'Cannot get supermarket list', title: 'Error'};
-          else this.alertContent = { text: 'No se pudo obtener la lista de supermercados', title: 'Error'};
+        if (this.selectedLanguage == 'en') this.alertContent = { text: 'Cannot get supermarket list', title: 'Error' };
+        else this.alertContent = { text: 'No se pudo obtener la lista de supermercados', title: 'Error' };
 
-          Swal.fire({
+        Swal.fire({
           ...this.mensajeConfig,
           title: this.alertContent.title,
           text: this.alertContent.text,
           icon: 'error',
-          });
-      }
-    );    
-
-  }
-
-  getIdiomas(): void{
-        this.obtenerIdiomasService.getIdiomas().subscribe(
-      (data) => {
-        this.idiomas = data;
-        // console.log('Idiomas cargados:', this.idiomas);
-        const idioma = this.idiomas.find(
-          (lang) => lang.cod_idioma === this.selectedLanguage
-        );
-        if (idioma) {
-          this.selectedLanguageName = idioma.nom_idioma;
-          if (this.selectedLanguage === 'en') {
-            this.cargarTraducciones(this.selectedLanguage);
-          }
-        }
-      },
-      () => {
-        if (this.selectedLanguage == 'en') this.alertContent = {text: 'Cannot get languages list', title: 'Error'};
-          else this.alertContent = { text: 'No se pudo obtener la lista de idiomas', title: 'Error'};
-
-          Swal.fire({
-          ...this.mensajeConfig,
-          title: this.alertContent.title,
-          text: this.alertContent.text,
-          icon: 'error',
-          });
+        });
       }
     );
 
   }
-
-  getProductos(): void{
+  getProductos(): void {
     this.isLoadingProductos = true;
-      this.productService.getProducts().subscribe(
+    this.productService.getProducts().subscribe(
       (data) => {
         this.products = data;
         this.filteredProducts = this.products;
@@ -208,21 +199,21 @@ export class ComparadorProductosPreciosComponent implements OnInit {
         this.actualizarOpcionesFiltro();
         // this.isLoadingProductos = false;
         setTimeout(() => {
-           this.isLoadingProductos = false;
-         }, 1200);
-         this.cargarTraducciones(this.selectedLanguage);
+          this.isLoadingProductos = false;
+        }, 1200);
+        this.cargarTraducciones(this.selectedLanguage);
       },
       () => {
-        if (this.selectedLanguage == 'en') this.alertContent = {text: 'Cannot get products list', title: 'Error'};
-          else this.alertContent = { text: 'No se pudo obtener la lista de productos', title: 'Error'};
+        if (this.selectedLanguage == 'en') this.alertContent = { text: 'Cannot get products list', title: 'Error' };
+        else this.alertContent = { text: 'No se pudo obtener la lista de productos', title: 'Error' };
 
-          Swal.fire({
+        Swal.fire({
           ...this.mensajeConfig,
           title: this.alertContent.title,
           text: this.alertContent.text,
           icon: 'error',
-          });
-          this.isLoadingProductos = false;
+        });
+        this.isLoadingProductos = false;
       }
     );
   }
@@ -234,15 +225,15 @@ export class ComparadorProductosPreciosComponent implements OnInit {
         console.log('Provincias cargadas', this.provincias);
       },
       () => {
-          if (this.selectedLanguage == 'en') this.alertContent = {text: 'Cannot get province list', title: 'Error'};
-          else this.alertContent = { text: 'No se pudo obtener la lista de provincias', title: 'Error'};
+        if (this.selectedLanguage == 'en') this.alertContent = { text: 'Cannot get province list', title: 'Error' };
+        else this.alertContent = { text: 'No se pudo obtener la lista de provincias', title: 'Error' };
 
-          Swal.fire({
+        Swal.fire({
           ...this.mensajeConfig,
           title: this.alertContent.title,
           text: this.alertContent.text,
           icon: 'error',
-          });
+        });
       }
     );
   }
@@ -258,68 +249,148 @@ export class ComparadorProductosPreciosComponent implements OnInit {
             // this.localidadSelected = null;
             // sessionStorage.removeItem('nro_localidad');
             console.log('Localidades cargadas:', this.localidades);
-            const localidadSession = sessionStorage.getItem ('nro_localidad');
+            const localidadSession = sessionStorage.getItem('nro_localidad');
 
             if (localidadSession) {
-            // Verificamos que la localidad guardada exista en las localidades cargadas
-            const localidadNumero = parseInt (localidadSession);
+              // Verificamos que la localidad guardada exista en las localidades cargadas
+              const localidadNumero = parseInt(localidadSession);
 
-            const localidadExiste = this.localidades.some(
-              loc => loc.nro_localidad === localidadNumero
-            );
-            
-            if (localidadExiste) {
-              this.localidadSelected = localidadNumero;
-              console.log('Localidad restaurada desde cache (número):', this.localidadSelected);
+              const localidadExiste = this.localidades.some(
+                loc => loc.nro_localidad === localidadNumero
+              );
+
+              if (localidadExiste) {
+                this.localidadSelected = localidadNumero;
+                console.log('Localidad restaurada desde cache (número):', this.localidadSelected);
+              } else {
+                // Si la localidad guardada no existe en la nueva provincia, la limpiamos
+                this.localidadSelected = null;
+                sessionStorage.removeItem('nro_localidad');
+              }
             } else {
-              // Si la localidad guardada no existe en la nueva provincia, la limpiamos
               this.localidadSelected = null;
-              sessionStorage.removeItem('nro_localidad');
             }
-          } else {
-            this.localidadSelected = null;
-          }
-          
-          console.log('Localidades cargadas:', this.localidades);
-          console.log('Localidad restaurada desde cache:', this.localidadSelected);
-          console.log ("provincia guardada cache", sessionStorage.getItem('cod_provincia'));
+
+            console.log('Localidades cargadas:', this.localidades);
+            console.log('Localidad restaurada desde cache:', this.localidadSelected);
+            console.log("provincia guardada cache", sessionStorage.getItem('cod_provincia'));
           },
           (error) => {
-          if (this.selectedLanguage == 'en') this.alertContent = {text: 'Cannot get cities list', title: 'Error'};
-            else this.alertContent = { text: 'No se pudo obtener la lista de localidades', title: 'Error'};
+            if (this.selectedLanguage == 'en') this.alertContent = { text: 'Cannot get cities list', title: 'Error' };
+            else this.alertContent = { text: 'No se pudo obtener la lista de localidades', title: 'Error' };
 
             Swal.fire({
+              ...this.mensajeConfig,
+              title: this.alertContent.title,
+              text: this.alertContent.text,
+              icon: 'error',
+            });
+          }
+        );
+    } else {
+      if (this.selectedLanguage == 'en') this.alertContent = { text: 'No esta definida la provincia', title: 'Error' };
+      else this.alertContent = { text: 'Province not defined', title: 'Error' };
+
+      Swal.fire({
+        ...this.mensajeConfig,
+        title: this.alertContent.title,
+        text: this.alertContent.text,
+        icon: 'error',
+      });
+    }
+  }
+
+  getSucursales() {
+    this.localidadGanador = this.localidadSelected?.toString() ?? '';
+    let nroSupermercadoGanador: string[] = [];
+    nroSupermercadoGanador.push(this.supermercadoMasBarato);
+
+    this.isLoadingSucursales = true; // Mostrar loading
+
+    this.sucursalesService
+      .getSucursales(this.localidadGanador, this.nrosSupermercadoGanador)
+      .subscribe(
+        (data: SucursalInterface[]) => {
+          this.sucursales = data;
+          this.sucursalesSource.data = this.sucursales;
+          this.showSucursales = true;
+          if (this.paginator) {
+            this.sucursalesSource.paginator = this.paginator;
+          }
+          this.isLoadingSucursales = false;
+        },
+        (error) => {
+          console.error('Error al obtener sucursales:', error);
+          if (this.selectedLanguage == 'en') {
+            this.alertContent = {
+              text: 'Cannot get branches list',
+              title: 'Error'
+            };
+          } else {
+            this.alertContent = {
+              text: 'No se pudo obtener la lista de sucursales',
+              title: 'Error'
+            };
+          }
+          Swal.fire({
             ...this.mensajeConfig,
             title: this.alertContent.title,
             text: this.alertContent.text,
-            icon: 'error',
-            });
-            }
-          );
-    } else {
-        if (this.selectedLanguage == 'en') this.alertContent = {text: 'No esta definida la provincia', title: 'Error'};
-          else this.alertContent = { text: 'Province not defined', title: 'Error'};
+            icon: 'error'
+          });
+          this.isLoadingSucursales = false;
+        }
+      );
+  }
 
-          Swal.fire({
+  // Método para alternar la expansión de sucursales
+  toggleSucursal(sucursal: SucursalInterface) {
+    this.sucursalExpanded = this.sucursalExpanded === sucursal ? null : sucursal;
+  }
+
+  getIdiomas(): void {
+    this.obtenerIdiomasService.getIdiomas().subscribe(
+      (data) => {
+        this.idiomas = data;
+        // console.log('Idiomas cargados:', this.idiomas);
+        const idioma = this.idiomas.find(
+          (lang) => lang.cod_idioma === this.selectedLanguage
+        );
+        if (idioma) {
+          this.selectedLanguageName = idioma.nom_idioma;
+          if (this.selectedLanguage === 'en') {
+            this.cargarTraducciones(this.selectedLanguage);
+          }
+        }
+      },
+      () => {
+        if (this.selectedLanguage == 'en') this.alertContent = { text: 'Cannot get languages list', title: 'Error' };
+        else this.alertContent = { text: 'No se pudo obtener la lista de idiomas', title: 'Error' };
+
+        Swal.fire({
           ...this.mensajeConfig,
           title: this.alertContent.title,
           text: this.alertContent.text,
           icon: 'error',
-          });
-        }
+        });
+      }
+    );
+
   }
 
-  isCartEmpty(): boolean {
-        if (this.cartItems.length === 0) {
-        if (this.selectedLanguage == 'en') this.alertContent = {text: 'Cannot do comparison, cart is empty', title: 'Attention'};
-          else this.alertContent = { text: 'Debe agregar productos al carrito', title: 'Atención'};
 
-          Swal.fire({
-          ...this.mensajeConfig,
-          title: this.alertContent.title,
-          text: this.alertContent.text,
-          icon: 'warning',
-          });
+
+  isCartEmpty(): boolean {
+    if (this.cartItems.length === 0) {
+      if (this.selectedLanguage == 'en') this.alertContent = { text: 'Cannot do comparison, cart is empty', title: 'Attention' };
+      else this.alertContent = { text: 'Debe agregar productos al carrito', title: 'Atención' };
+
+      Swal.fire({
+        ...this.mensajeConfig,
+        title: this.alertContent.title,
+        text: this.alertContent.text,
+        icon: 'warning',
+      });
       return true;
     }
     return false;
@@ -328,6 +399,7 @@ export class ComparadorProductosPreciosComponent implements OnInit {
   iniciarComparacion(): void {
     if (this.isCartEmpty()) return;
 
+    this.vaciarTablaSucursales();
     this.isCartOpen = false;
     this.mostrarComparacion = true;
     this.showLocalidades = false;
@@ -351,7 +423,7 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     this.supermercados = [];
     this.totalesSupermercado = {};
     this.supermercadoMasBarato = '';
-    this.displayedColumns = ['producto'];
+    this.tablaComparadoraColumns = ['producto'];
     this.getProductos();
   }
 
@@ -432,17 +504,17 @@ export class ComparadorProductosPreciosComponent implements OnInit {
         this.actualizarOpcionesFiltro();
       },
       () => {
-        if (this.selectedLanguage == 'en') this.alertContent = {text: 'Cannot get translation', title: 'Error'};
-          else this.alertContent = { text: 'No se pudo obtener la traducción', title: 'Error'};
+        if (this.selectedLanguage == 'en') this.alertContent = { text: 'Cannot get translation', title: 'Error' };
+        else this.alertContent = { text: 'No se pudo obtener la traducción', title: 'Error' };
 
-          Swal.fire({
+        Swal.fire({
           ...this.mensajeConfig,
           title: this.alertContent.title,
           text: this.alertContent.text,
           icon: 'error',
-          });
-     
-        }
+        });
+
+      }
     );
   }
 
@@ -457,19 +529,19 @@ export class ComparadorProductosPreciosComponent implements OnInit {
       console.log('Producto agregado al carrito:', product);
     } else {
       if (this.selectedLanguage == 'en') this.alertContent = { text: 'This product is in the cart', title: 'Attention' };
-        else this.alertContent = {text: 'Este producto ya está en el carrito', title: 'Atención' };
-        Swal.fire({
-          ...this.mensajeConfig,
-          title: this.alertContent.title,
-          text: this.alertContent.text,
-          icon: 'info',
-        });
+      else this.alertContent = { text: 'Este producto ya está en el carrito', title: 'Atención' };
+      Swal.fire({
+        ...this.mensajeConfig,
+        title: this.alertContent.title,
+        text: this.alertContent.text,
+        icon: 'info',
+      });
     }
   }
 
   borrarDelCarrito(product: any) {
     if (this.selectedLanguage == 'en') this.alertContent = { text: 'Are you sure you want to remove ' + product.nom_producto + ' from the cart?', title: 'Attention' };
-      else this.alertContent = { text: '¿Seguro que quieres eliminar ' + product.nom_producto + ' del carrito?', title: 'Atención' };
+    else this.alertContent = { text: '¿Seguro que quieres eliminar ' + product.nom_producto + ' del carrito?', title: 'Atención' };
     Swal.fire({
       ...this.mensajeConfig,
       title: this.alertContent.title,
@@ -480,11 +552,11 @@ export class ComparadorProductosPreciosComponent implements OnInit {
       cancelButtonText: this.selectedLanguage == 'en' ? 'Cancel' : 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-      this.cartItems = this.cartItems.filter(
-        (item) => item.cod_barra !== product.cod_barra
-      );
-      this.guardarCarritoEnCache();
-      console.log('Carrito Actualizado:', this.cartItems);
+        this.cartItems = this.cartItems.filter(
+          (item) => item.cod_barra !== product.cod_barra
+        );
+        this.guardarCarritoEnCache();
+        console.log('Carrito Actualizado:', this.cartItems);
       }
     });
 
@@ -503,9 +575,9 @@ export class ComparadorProductosPreciosComponent implements OnInit {
       cancelButtonText: this.selectedLanguage == 'en' ? 'Cancel' : 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-      this.cartItems = [];
-      this.guardarCarritoEnCache();
-      console.log('Carrito limpio:', this.cartItems);
+        this.cartItems = [];
+        this.guardarCarritoEnCache();
+        console.log('Carrito limpio:', this.cartItems);
       }
     });
   }
@@ -587,25 +659,26 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     );
   }
 
-onProvinciaChange(event: MatSelectChange): void {
-  const nuevaProvincia = event.value;
-  
-  // Si cambió la provincia, limpiar la localidad
-  if (this.provinciaSelected !== nuevaProvincia) {
-    this.localidadSelected = null;
-    sessionStorage.removeItem('nro_localidad');
-  }
-  
-  this.provinciaSelected = nuevaProvincia;
-  sessionStorage.setItem('cod_provincia', this.provinciaSelected || '');
-  this.productosComparados = [];
-  this.seCompararonProductos = false;
+  onProvinciaChange(event: MatSelectChange): void {
+    const nuevaProvincia = event.value;
 
-  console.log('Provincia seleccionada:', this.provinciaSelected);
-  if (this.paisBase && this.provinciaSelected) {
-    this.getLocalidades();
+    // Si cambió la provincia, limpiar la localidad
+    if (this.provinciaSelected !== nuevaProvincia) {
+      this.localidadSelected = null;
+      sessionStorage.removeItem('nro_localidad');
+    }
+
+    this.provinciaSelected = nuevaProvincia;
+    sessionStorage.setItem('cod_provincia', this.provinciaSelected || '');
+    this.productosComparados = [];
+    this.vaciarTablaSucursales();
+    this.seCompararonProductos = false;
+
+    console.log('Provincia seleccionada:', this.provinciaSelected);
+    if (this.paisBase && this.provinciaSelected) {
+      this.getLocalidades();
+    }
   }
-}
 
   onLocalidadChange(event: MatSelectChange): void {
     this.localidadSelected = event.value;
@@ -613,23 +686,24 @@ onProvinciaChange(event: MatSelectChange): void {
     console.log('Localidad seleccionada:', this.localidadSelected);
     this.productosComparados = [];
     this.seCompararonProductos = false;
+    this.vaciarTablaSucursales();
     // if (this.localidadSelected) {
     //   this.compararProductos();
     // }
   }
 
   compararProductos(): void {
-    if (this.isCartEmpty()) return; 
+    if (this.isCartEmpty()) return;
 
     if (!this.localidadSelected) {
       if (this.selectedLanguage == 'en') this.alertContent = { text: 'You must select a city before compare prices', title: 'Attention' };
-        else this.alertContent = {text: 'Debe seleccionar una localidad antes de comparar precios', title: 'Atención' };
-        Swal.fire({
-          ...this.mensajeConfig,
-          title: this.alertContent.title,
-          text: this.alertContent.text,
-          icon: 'info',
-        });
+      else this.alertContent = { text: 'Debe seleccionar una localidad antes de comparar precios', title: 'Atención' };
+      Swal.fire({
+        ...this.mensajeConfig,
+        title: this.alertContent.title,
+        text: this.alertContent.text,
+        icon: 'info',
+      });
       return;
     }
 
@@ -643,7 +717,7 @@ onProvinciaChange(event: MatSelectChange): void {
       codigosBarra,
       'y localidad:',
       this.localidadSelected
-    );  
+    );
 
     const localidadParaAPI = this.localidadSelected.toString();
 
@@ -654,13 +728,13 @@ onProvinciaChange(event: MatSelectChange): void {
           if (!data || data.length === 0) {
             this.seCompararonProductos = true;
             if (this.selectedLanguage == 'en') this.alertContent = { text: 'No products found on this city', title: 'Attention' };
-              else this.alertContent = {text: 'No se encontraron estos productos en esta localidad', title: 'Atención' };
-              Swal.fire({
-                ...this.mensajeConfig,
-                title: this.alertContent.title,
-                text: this.alertContent.text,
-                icon: 'info',
-              });
+            else this.alertContent = { text: 'No se encontraron estos productos en esta localidad', title: 'Atención' };
+            Swal.fire({
+              ...this.mensajeConfig,
+              title: this.alertContent.title,
+              text: this.alertContent.text,
+              icon: 'info',
+            });
 
             this.productosComparados = [];
             return;
@@ -673,14 +747,14 @@ onProvinciaChange(event: MatSelectChange): void {
           this.supermercados = Array.from(
             new Set(data.map((producto) => producto.razon_social))
           );
-          this.displayedColumns = ['producto', ...this.supermercados];
+          this.tablaComparadoraColumns = ['producto', ...this.supermercados];
           this.calcularTotales();
-          this.dataSource.data = this.productosComparados;
+          this.productosComparadosSource.data = this.productosComparados;
           this.isLoadingComparacion = false;
         },
         () => {
-        if (this.selectedLanguage == 'en') this.alertContent = {text: 'Cannot get products comparison table', title: 'Error'};
-          else this.alertContent = { text: 'No se pudo obtener la tabla de comparación de productos', title: 'Error'};
+          if (this.selectedLanguage == 'en') this.alertContent = { text: 'Cannot get products comparison table', title: 'Error' };
+          else this.alertContent = { text: 'No se pudo obtener la tabla de comparación de productos', title: 'Error' };
           Swal.fire({
             ...this.mensajeConfig,
             title: this.alertContent.title,
@@ -753,41 +827,44 @@ onProvinciaChange(event: MatSelectChange): void {
   }
 
   // Actualizar el método calcularTotales para trabajar con el nuevo formato
-calcularTotales(): void {
-  this.totalesSupermercado = {};
-  this.supermercados.forEach((supermercado) => {
-    this.totalesSupermercado[supermercado] = 0;
-  });
+  calcularTotales(): void {
+    this.totalesSupermercado = {};
+    this.supermercados.forEach((supermercado) => {
+      this.totalesSupermercado[supermercado] = 0;
+    });
 
-  // Supermercados que tienen precio para TODOS los productos
-  const supermercadosValidos: string[] = this.supermercados.filter((supermercado) =>
-    this.productosComparados.every((producto) => {
-      const estadoProducto = producto.precios[supermercado];
-      return estadoProducto && estadoProducto.estado === 'con_precio' && estadoProducto.precio !== undefined;
-    })
-  );
-
-  // Calcular totales solo para supermercados válidos
-  supermercadosValidos.forEach((supermercado) => {
-    this.totalesSupermercado[supermercado] = this.productosComparados.reduce((total, producto) => {
-      const estadoProducto = producto.precios[supermercado];
-      return total + (estadoProducto && estadoProducto.precio !== undefined ? estadoProducto.precio : 0);
-    }, 0);
-  });
-
-  if (supermercadosValidos.length > 0) {
-    this.supermercadoMasBarato = supermercadosValidos.reduce((a, b) =>
-      this.totalesSupermercado[a] < this.totalesSupermercado[b] ? a : b
+    // Supermercados que tienen precio para TODOS los productos
+    const supermercadosValidos: string[] = this.supermercados.filter((supermercado) =>
+      this.productosComparados.every((producto) => {
+        const estadoProducto = producto.precios[supermercado];
+        return estadoProducto && estadoProducto.estado === 'con_precio' && estadoProducto.precio !== undefined;
+      })
     );
-    this.isSupermercadoGanador = true;
-  } else {
-    this.supermercadoMasBarato = '';
-    this.isSupermercadoGanador = false;
-  }
 
-  console.log('Totales por supermercado:', this.totalesSupermercado);
-  console.log('Supermercado más barato:', this.supermercadoMasBarato);
-}
+    // Calcular totales solo para supermercados válidos
+    supermercadosValidos.forEach((supermercado) => {
+      this.totalesSupermercado[supermercado] = this.productosComparados.reduce((total, producto) => {
+        const estadoProducto = producto.precios[supermercado];
+        return total + (estadoProducto && estadoProducto.precio !== undefined ? estadoProducto.precio : 0);
+      }, 0);
+    });
+
+    if (supermercadosValidos.length > 0) {
+      this.supermercadoMasBarato = supermercadosValidos.reduce((a, b) =>
+        this.totalesSupermercado[a] < this.totalesSupermercado[b] ? a : b
+      );
+      this.isSupermercadoGanador = true;
+      const nroGanador = this.getNroSupermercado(this.supermercadoMasBarato);
+      this.nrosSupermercadoGanador = nroGanador !== null ? [nroGanador.toString()] : [];
+
+    } else {
+      this.supermercadoMasBarato = '';
+      this.isSupermercadoGanador = false;
+    }
+
+    console.log('Totales por supermercado:', this.totalesSupermercado);
+    console.log('Supermercado más barato:', this.supermercadoMasBarato);
+  }
 
   // Actualizar el método obtenerPrecioMasBajo
   obtenerPrecioMasBajo(producto: productosComparados): number | undefined {
@@ -802,40 +879,44 @@ calcularTotales(): void {
     return this.cartItems.some((item) => item.cod_barra === product.cod_barra);
   }
 
-verDetalles(producto: any) {
-  // Si el idioma es inglés, busca los valores traducidos
-  if (this.selectedLanguage === 'en' && this.traducciones && producto) {
-    this.productoSeleccionado = {
-      ...producto,
-      nom_categoria:
-        this.traducciones.categorias?.find(
-          (cat: { nro_categoria: number }) => cat.nro_categoria === producto.nro_categoria
-        )?.nom_categoria || producto.nom_categoria,
-      nom_rubro:
-        this.traducciones.rubros?.find(
-          (rubro: { nro_rubro: number }) => rubro.nro_rubro === producto.nro_rubro
-        )?.nom_rubro || producto.nom_rubro,
-      nom_tipo_producto:
-        this.traducciones.tipos_productos?.find(
-          (tipo: { nro_tipo_producto: number }) => tipo.nro_tipo_producto === producto.nro_tipo_producto
-        )?.nom_tipo_producto || producto.nom_tipo_producto,
-    };
-  } else {
-    this.productoSeleccionado = producto;
+  verDetalles(producto: any) {
+    // Si el idioma es inglés, busca los valores traducidos
+    if (this.selectedLanguage === 'en' && this.traducciones && producto) {
+      this.productoSeleccionado = {
+        ...producto,
+        nom_categoria:
+          this.traducciones.categorias?.find(
+            (cat: { nro_categoria: number }) => cat.nro_categoria === producto.nro_categoria
+          )?.nom_categoria || producto.nom_categoria,
+        nom_rubro:
+          this.traducciones.rubros?.find(
+            (rubro: { nro_rubro: number }) => rubro.nro_rubro === producto.nro_rubro
+          )?.nom_rubro || producto.nom_rubro,
+        nom_tipo_producto:
+          this.traducciones.tipos_productos?.find(
+            (tipo: { nro_tipo_producto: number }) => tipo.nro_tipo_producto === producto.nro_tipo_producto
+          )?.nom_tipo_producto || producto.nom_tipo_producto,
+      };
+    } else {
+      this.productoSeleccionado = producto;
+    }
+    this.mostrarModal = true;
   }
-  this.mostrarModal = true;
-}
   // mandamos al usuario a la pantalla de sucursales
-  verSucursales(filtros: filtrosSucursal): void {
-    const base64params = btoa(JSON.stringify(filtros));
-
-    console.log('filtros ', filtros);
-
-    const url = `/home/buscador-sucursales?data=${encodeURIComponent(
-      base64params
-    )}`;
-
-    window.open(url, '_blank');
+  verSucursales(): void {
+    // const base64params = btoa(JSON.stringify(filtros));
+    // const url = `/home/buscador-sucursales?data=${encodeURIComponent(
+    //   base64params
+    // )}`;
+    // window.open(url, '_blank');
+    this.isLoadingSucursales = true;
+    if (this.showSucursales) {
+      this.vaciarTablaSucursales();
+      this.isLoadingSucursales = false;
+    } else {
+      this.getSucursales();
+      this.showSucursales = true;
+    }
   }
 
   getNroSupermercado(nombre: string): number | null {
@@ -847,8 +928,32 @@ verDetalles(producto: any) {
     return supermercado ? supermercado.nro_supermercado : null;
   }
 
-  getMensajeSinPrecio (): string {
-    return this.selectedLanguage === 'en' ? 'No prices for all products' : 'Faltan precios de productos';
+
+  formatHorario(horario: string): string[] {
+    if (!horario) return [];
+
+    const diasOrdenados = [
+      'Lunes',
+      'Martes',
+      'Miércoles',
+      'Jueves',
+      'Viernes',
+      'Sábado',
+      'Domingo',
+    ];
+
+    return horario
+      .split(',')
+      .map((h) => h.trim())
+      .sort((a, b) => {
+        const diaA = diasOrdenados.indexOf(a.split(':')[0]);
+        const diaB = diasOrdenados.indexOf(b.split(':')[0]);
+        return diaA - diaB;
+      });
+  }
+  vaciarTablaSucursales(): void {
+    this.sucursalesSource.data = [];
+    this.showSucursales = false;
   }
 
   cerrarModal() {
@@ -856,6 +961,12 @@ verDetalles(producto: any) {
     this.productoSeleccionado = null;
   }
 
+  getMensajeSinPrecio(): string {
+    return this.selectedLanguage === 'en' ? 'No prices for all products' : 'Faltan precios de productos';
+  }
+  getMsgVerSucursales (): string { return this.selectedLanguage === 'en' ? 'View Branches' : 'Ver Sucursales'}
+  getMsgOcultarSucursales(): string { return this.selectedLanguage === 'en' ? 'Hide Branches' : 'Ocultar Sucursales'}
+  
   goToBranches() {
     this.router.navigate(['/home/buscador-sucursales']);
   }
@@ -867,4 +978,6 @@ verDetalles(producto: any) {
   goToAdminSupermercados() {
     this.router.navigate(['/home/administrador-supermercados']);
   }
+
+
 }

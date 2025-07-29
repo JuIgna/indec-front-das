@@ -756,3 +756,80 @@ button:focus {
 .supermercado-total-ganador {
   background-color: #c8e6c9 !important; /* verde claro */
 }
+/* --- Sucursales Table Scroll --- */
+.sucursales-scroll-container {
+  max-height: 400px;
+  overflow-y: auto;
+  margin: 20px 0;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 0;
+}
+
+/* --- Sucursales Table --- */
+.sucursales-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+}
+
+.sucursales-table th,
+.sucursales-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #5a4f4f;
+  vertical-align: middle;
+}
+
+.sucursal-row.expanded-row {
+  background: #f5f5f5;
+}
+
+.detail-row {
+  background: #f9f9f9;
+  transition: all 0.2s;
+}
+
+.sucursal-detail {
+  padding: 16px 24px;
+  font-size: 0.98rem;
+}
+
+.sucursal-info .info-row {
+  margin-bottom: 8px;
+}
+
+.sucursal-info strong {
+  color: #2D336B;
+  margin-right: 6px;
+}
+
+.horarios-list {
+  margin-top: 4px;
+  margin-left: 12px;
+}
+
+.horario-item {
+  font-size: 0.95em;
+  color: #444;
+}
+
+@media (max-width: 768px) {
+  .sucursales-scroll-container {
+  overflow-y: visible;
+  max-height: none;
+}
+
+  .sucursal-detail {
+    padding: 10px 8px;
+  }
+  .sucursales-table th, .sucursales-table td {
+    padding: 6px 4px;
+    font-size: 0.95em;
+  }
+}
+
+.sucursales-header {
+  background-color: #DCDCDC;
+}
