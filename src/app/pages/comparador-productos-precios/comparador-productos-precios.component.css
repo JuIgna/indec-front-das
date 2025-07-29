@@ -439,7 +439,7 @@ button:focus {
 .comparison-table th,
 .comparison-table td {
   padding: 4px; /* Del CSS del modal */
-  border: 1px solid #ddd; /* Del CSS del modal */
+  border: 1px solid #5a4f4f; /* Del CSS del modal */
   vertical-align: middle;
 }
 
@@ -465,6 +465,7 @@ button:focus {
 .warning-chip {
   display: inline-flex;
   align-items: center;
+  font-weight: 800 !important;   
 }
 
 .price-cell {
@@ -496,8 +497,8 @@ button:focus {
 }
 
 .supermercado-ganador {
-  background-color: #4CAF50; /* Verde del CSS del modal (.supermercado-mas-barato) */
-  color: white;
+  background-color: #45be49; /* Verde del CSS del modal (.supermercado-mas-barato) */
+  color: rgb(21, 20, 20);
   font-weight: bold;
 }
 
@@ -743,4 +744,15 @@ button:focus {
   .warning-icon {
     filter: brightness(1.2);
   }
+}
+
+.total-cell {
+  font-weight: 400;
+  background-color: #ADD8E6;
+  border-top: 2px solid #ccc;
+  padding: 8px;
+}
+
+.supermercado-total-ganador {
+  background-color: #c8e6c9 !important; /* verde claro */
 }

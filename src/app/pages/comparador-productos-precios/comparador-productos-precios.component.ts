@@ -130,18 +130,22 @@ export class ComparadorProductosPreciosComponent implements OnInit {
 
   ngOnInit() {
     this.getProductos();
-
     this.getIdiomas();
-
     this.getProvincias();
-
     this.getSupermercados();
-
     this.detectLanguage();
 
     const storedCart = sessionStorage.getItem('cartItems');
     if (storedCart) {
       this.cartItems = JSON.parse(storedCart);
+    }
+
+    const provinciaSession = sessionStorage.getItem ('cod_provincia');
+    if (provinciaSession) {
+      this.provinciaSelected = provinciaSession;
+      this.getLocalidades ();
+      const localidadSession = sessionStorage.getItem ('nro_localidad');
+      if (localidadSession) this.localidadSelected = localidadSession;
     }
   }
 
@@ -253,9 +257,30 @@ export class ComparadorProductosPreciosComponent implements OnInit {
           (data) => {
             this.localidades = data;
             this.showLocalidades = true;
-            this.localidadSelected = null;
+            // this.localidadSelected = null;
             // sessionStorage.removeItem('nro_localidad');
             console.log('Localidades cargadas:', this.localidades);
+            const localidadSession = sessionStorage.getItem ('nro_localidad');
+
+            if (localidadSession) {
+            // Verificamos que la localidad guardada exista en las localidades cargadas
+            const localidadExiste = this.localidades.some(
+              loc => loc.nro_localidad.toString() === localidadSession
+            );
+            
+            if (localidadExiste) {
+              this.localidadSelected = localidadSession;
+            } else {
+              // Si la localidad guardada no existe en la nueva provincia, la limpiamos
+              this.localidadSelected = null;
+              sessionStorage.removeItem('nro_localidad');
+            }
+          } else {
+            this.localidadSelected = null;
+          }
+          
+          console.log('Localidades cargadas:', this.localidades);
+          console.log('Localidad restaurada desde cache:', this.localidadSelected);
           },
           (error) => {
           if (this.selectedLanguage == 'en') this.alertContent = {text: 'Cannot get cities list', title: 'Error'};
@@ -311,6 +336,10 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     this.supermercadoMasBarato = '';
     this.provinciaSelected = null;
     this.localidadSelected = null;
+
+    this.provinciaSelected = sessionStorage.getItem('cod_provincia');
+    this.getLocalidades ();
+    // this.localidadSelected = sessionStorage.getItem ('nro_localidad');
     this.cargarSeleccionGuardada();
   }
 
@@ -345,14 +374,15 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     const localidadGuardada = sessionStorage.getItem('nro_localidad');
     if (provinciaGuardada) {
       this.provinciaSelected = provinciaGuardada;
-
       this.getLocalidades();
-
       this.showLocalidades = true;
     }
-    if (localidadGuardada) {
-      this.localidadSelected = localidadGuardada;
-    }
+    if (localidadGuardada && this.localidades.some(loc => loc.nro_localidad.toString() === localidadGuardada)) {
+    this.localidadSelected = localidadGuardada;
+  } else {
+    this.localidadSelected = null;
+  }
+
   }
 
   detectLanguage(): void {
@@ -563,19 +593,32 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     );
   }
 
-  onProvinciaChange(event: MatSelectChange): void {
-    this.provinciaSelected = event.value;
-    sessionStorage.setItem('cod_provincia', this.provinciaSelected || '');
-    console.log('Provincia seleccionada:', this.provinciaSelected);
-    if (this.paisBase && this.provinciaSelected) {
-      this.getLocalidades();
-    }
+onProvinciaChange(event: MatSelectChange): void {
+  const nuevaProvincia = event.value;
+  
+  // Si cambió la provincia, limpiar la localidad
+  if (this.provinciaSelected !== nuevaProvincia) {
+    this.localidadSelected = null;
+    sessionStorage.removeItem('nro_localidad');
   }
+  
+  this.provinciaSelected = nuevaProvincia;
+  sessionStorage.setItem('cod_provincia', this.provinciaSelected || '');
+  this.productosComparados = [];
+  this.seCompararonProductos = false;
+
+  console.log('Provincia seleccionada:', this.provinciaSelected);
+  if (this.paisBase && this.provinciaSelected) {
+    this.getLocalidades();
+  }
+}
 
   onLocalidadChange(event: MatSelectChange): void {
     this.localidadSelected = event.value;
     sessionStorage.setItem('nro_localidad', this.localidadSelected || '');
     console.log('Localidad seleccionada:', this.localidadSelected);
+    this.productosComparados = [];
+    this.seCompararonProductos = false;
     // if (this.localidadSelected) {
     //   this.compararProductos();
     // }
@@ -606,7 +649,7 @@ export class ComparadorProductosPreciosComponent implements OnInit {
       codigosBarra,
       'y localidad:',
       this.localidadSelected
-    );
+    );  
 
     this.compararPreciosService
       .getCompararPrecios(codigosBarra, this.localidadSelected)
@@ -714,35 +757,41 @@ export class ComparadorProductosPreciosComponent implements OnInit {
   }
 
   // Actualizar el método calcularTotales para trabajar con el nuevo formato
-  calcularTotales(): void {
-    this.totalesSupermercado = {};
-    this.supermercados.forEach((supermercado) => {
-      this.totalesSupermercado[supermercado] = 0;
-    });
+calcularTotales(): void {
+  this.totalesSupermercado = {};
+  this.supermercados.forEach((supermercado) => {
+    this.totalesSupermercado[supermercado] = 0;
+  });
 
-    this.productosComparados.forEach((producto) => {
-      this.supermercados.forEach((supermercado) => {
-        const estadoProducto = producto.precios[supermercado];
-        if (estadoProducto && estadoProducto.precio !== undefined) {
-          this.totalesSupermercado[supermercado] += estadoProducto.precio;
-        }
-      });
-    });
+  // Supermercados que tienen precio para TODOS los productos
+  const supermercadosValidos: string[] = this.supermercados.filter((supermercado) =>
+    this.productosComparados.every((producto) => {
+      const estadoProducto = producto.precios[supermercado];
+      return estadoProducto && estadoProducto.estado === 'con_precio' && estadoProducto.precio !== undefined;
+    })
+  );
 
-    const supermercadosConPrecios = Object.keys(
-      this.totalesSupermercado
-    ).filter((supermercado) => this.totalesSupermercado[supermercado] > 0);
+  // Calcular totales solo para supermercados válidos
+  supermercadosValidos.forEach((supermercado) => {
+    this.totalesSupermercado[supermercado] = this.productosComparados.reduce((total, producto) => {
+      const estadoProducto = producto.precios[supermercado];
+      return total + (estadoProducto && estadoProducto.precio !== undefined ? estadoProducto.precio : 0);
+    }, 0);
+  });
 
-    if (supermercadosConPrecios.length > 0) {
-      this.supermercadoMasBarato = supermercadosConPrecios.reduce((a, b) =>
-        this.totalesSupermercado[a] < this.totalesSupermercado[b] ? a : b
-      );
-      this.isSupermercadoGanador = true;
-    }
-
-    console.log('Totales por supermercado:', this.totalesSupermercado);
-    console.log('Supermercado más barato:', this.supermercadoMasBarato);
+  if (supermercadosValidos.length > 0) {
+    this.supermercadoMasBarato = supermercadosValidos.reduce((a, b) =>
+      this.totalesSupermercado[a] < this.totalesSupermercado[b] ? a : b
+    );
+    this.isSupermercadoGanador = true;
+  } else {
+    this.supermercadoMasBarato = '';
+    this.isSupermercadoGanador = false;
   }
+
+  console.log('Totales por supermercado:', this.totalesSupermercado);
+  console.log('Supermercado más barato:', this.supermercadoMasBarato);
+}
 
   // Actualizar el método obtenerPrecioMasBajo
   obtenerPrecioMasBajo(producto: productosComparados): number | undefined {
@@ -800,6 +849,10 @@ verDetalles(producto: any) {
     );
     console.log('supermercado ', supermercado);
     return supermercado ? supermercado.nro_supermercado : null;
+  }
+
+  getMensajeSinPrecio (): string {
+    return this.selectedLanguage === 'en' ? 'No prices for all products' : 'Faltan precios de productos';
   }
 
   cerrarModal() {

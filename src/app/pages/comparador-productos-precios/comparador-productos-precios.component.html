@@ -62,6 +62,7 @@
   <mat-sidenav #cartSidenav [opened]="isCartOpen" mode="over" position="end" (closedStart)="closeMenus()" class="sidebar">
     <mat-toolbar >
       <div class="sidenav-header">
+    <mat-icon matBadgeColor="warn" matBadgeSize="small">shopping_cart</mat-icon>
         <h4 i18n>Carrito</h4>
       </div>
       <!-- <span class="toolbar-spacer"></span>
@@ -214,7 +215,7 @@
     </div>
 
 
-  <!--                        -----------------             -------------------------------- -------------------------- -->
+  <!-------------------------------------------------------------------------------------------------------------------- -->
 
     <!-- Vista de Comparación de Precios -->
     <div *ngIf="!isLoadingProductos && mostrarComparacion" class="comparison-container">
@@ -262,13 +263,13 @@
 
           </div>
 
-          <!-- Tabla de Comparación -->
+          <!-- TABLA DE COMPARACION -->
           <div *ngIf="productosComparados.length > 0" class="comparison-table-container">
             <table mat-table [dataSource]="productosComparados" class="comparison-table">
               <!-- Columna de Producto -->
               <ng-container matColumnDef="producto">
-                <th mat-header-cell *matHeaderCellDef i18n class="header-bold">
-                  Producto
+                <th mat-header-cell *matHeaderCellDef i18n class="header-bold" style="background-color: #DCDCDC ">
+                  <strong> Producto </strong>
                 </th>
                 <td mat-cell *matCellDef="let producto" class="product-cell">
                   <div class="product-info">
@@ -282,15 +283,19 @@
                     </span>
                   </div>
                 </td>
+
+                <td mat-footer-cell *matFooterCellDef class="total-cell">
+                  <strong i18n>Total</strong>
+                </td>
               </ng-container>
 
               <!-- Columnas dinámicas de Supermercados -->
               <ng-container *ngFor="let supermercado of supermercados" [matColumnDef]="supermercado">
                 <th mat-header-cell *matHeaderCellDef [class.supermercado-ganador]="
                     supermercado === supermercadoMasBarato
-                  ">
+                  " style="background-color: #DCDCDC ">
                   <div class="header-content">
-                    <span> {{ supermercado }}</span>
+                    <strong> {{ supermercado }} </strong>
                     <mat-icon *ngIf="supermercado === supermercadoMasBarato">
                       emoji_events
                     </mat-icon>
@@ -358,14 +363,29 @@
                     </div>
                   </div>
                 </td>
+
+                <td mat-footer-cell *matFooterCellDef class="total-cell"
+                  [ngClass]="{ 'supermercado-ganador': supermercado === supermercadoMasBarato }">
+                <strong>
+                  {{
+                    totalesSupermercado[supermercado] > 0
+                      ? (totalesSupermercado[supermercado] | currency : 'ARS: ' : 'symbol' : '1.2-2')
+                      : getMensajeSinPrecio()
+                  }}
+                </strong>
+              </td>
+
               </ng-container>
 
               <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
               <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+              <tr mat-footer-row *matFooterRowDef="displayedColumns"></tr>
+
+
             </table>
 
             <!-- Fila de Totales -- por el momento no lo considero necesario -->
-
+            
             <!-- Resultado Final -->
             <div *ngIf="supermercadoMasBarato" class="result-section">
               <mat-card class="result-card">
@@ -389,17 +409,38 @@
                 </mat-card-content>
               </mat-card>
             </div>
+
+            <!-- No hay supermercado ganador-->
+            <div *ngIf="!supermercadoMasBarato" class="result-section">
+              <mat-card class="result-card">
+                <mat-card-content>
+                  <div class="result-content">
+                    <mat-icon class="trophy-icon">report_problem</mat-icon>
+                    <div class="result-text">
+                      <h3 i18n>No hay supermercado ganador</h3>
+                      <p i18n>
+                        Ningún supermercado contiene precios para todos los productos seleccionados.
+                      </p>
+                    </div>
+                  </div>
+                </mat-card-content>
+              </mat-card>
+            </div>
+
+
           </div>
 
           <!-- Mensaje cuando no hay productos para comparar -->
-          <div *ngIf="productosComparados.length === 0 && seCompararonProductos" class="no-products-message">
+          <div *ngIf="productosComparados.length === 0" class="no-products-message">
             <mat-card class="empty-state">
               <mat-card-content>
                 <mat-icon>info</mat-icon>
-                <p i18n>No se encontraron productos en esta localidad.</p>
+                <p *ngIf="!seCompararonProductos" i18n>Debe seleccionar una localidad para comparar productos.</p>
+                <p *ngIf="seCompararonProductos" i18n>No se encontraron productos en esta localidad.</p>
               </mat-card-content>
             </mat-card>
           </div>
+
         </mat-card-content>
 
         <mat-card-actions>

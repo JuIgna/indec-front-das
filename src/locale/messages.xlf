@@ -217,7 +217,7 @@
         <source>Carrito</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
-          <context context-type="linenumber">65,66</context>
+          <context context-type="linenumber">66,67</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4529994648061300824" datatype="html">
@@ -365,11 +365,11 @@
           <context context-type="linenumber">260,262</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="3682345229658789746" datatype="html">
-        <source> Producto </source>
+      <trans-unit id="4021977983848151792" datatype="html">
+        <source><x id="START_TAG_STRONG" ctype="x-strong" equiv-text="&lt;strong>"/> Producto <x id="CLOSE_TAG_STRONG" ctype="x-strong" equiv-text="&lt;/strong>"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
-          <context context-type="linenumber">272</context>
+          <context context-type="linenumber">272,273</context>
         </context-group>
       </trans-unit>
       <trans-unit id="951460896521022339" datatype="html">
@@ -383,7 +383,7 @@
         <source>¡Supermercado más económico!</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
-          <context context-type="linenumber">376,377</context>
+          <context context-type="linenumber">377,378</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2939607894799407653" datatype="html">
@@ -393,91 +393,112 @@
                         }}"/> </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
-          <context context-type="linenumber">381,386</context>
+          <context context-type="linenumber">382,387</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4116371881568505203" datatype="html">
+        <source>No hay supermercado ganador</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
+          <context context-type="linenumber">401,402</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5530953577574865270" datatype="html">
+        <source> Ningún supermercado contiene precios para todos los productos seleccionados. </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
+          <context context-type="linenumber">403</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7538874794935047904" datatype="html">
+        <source>Debe seleccionar una localidad para comparar productos.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
+          <context context-type="linenumber">419,420</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8438095751959797602" datatype="html">
         <source>No se encontraron productos en esta localidad.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
-          <context context-type="linenumber">399,400</context>
+          <context context-type="linenumber">420,421</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3509243215307360603" datatype="html">
         <source><x id="START_TAG_MAT_ICON" ctype="x-mat_icon" equiv-text="&lt;mat-icon>"/>arrow_back<x id="CLOSE_TAG_MAT_ICON" ctype="x-mat_icon" equiv-text="&lt;/mat-icon>"/> Volver a Productos </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
-          <context context-type="linenumber">407,409</context>
+          <context context-type="linenumber">429,431</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1641588566038081395" datatype="html">
         <source><x id="START_TAG_MAT_ICON" ctype="x-mat_icon" equiv-text="&lt;mat-icon>"/>open_in_new<x id="CLOSE_TAG_MAT_ICON" ctype="x-mat_icon" equiv-text="&lt;/mat-icon>"/> Ver Sucursales </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
-          <context context-type="linenumber">418,420</context>
+          <context context-type="linenumber">440,442</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6113472039110277314" datatype="html">
         <source>Detalles del Producto</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
-          <context context-type="linenumber">431</context>
+          <context context-type="linenumber">453</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5691387802026943466" datatype="html">
         <source>Nombre del Producto:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
-          <context context-type="linenumber">447,448</context>
+          <context context-type="linenumber">469,470</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2665781399099373735" datatype="html">
         <source>Descripción:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
-          <context context-type="linenumber">451,452</context>
+          <context context-type="linenumber">473,474</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8414649890496607475" datatype="html">
         <source>Categoría:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
-          <context context-type="linenumber">455,456</context>
+          <context context-type="linenumber">477,478</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5816128809872343195" datatype="html">
         <source>Marca:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
-          <context context-type="linenumber">459</context>
+          <context context-type="linenumber">481</context>
         </context-group>
       </trans-unit>
       <trans-unit id="96396209894346231" datatype="html">
         <source>Tipo de Producto:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
-          <context context-type="linenumber">462,463</context>
+          <context context-type="linenumber">484,485</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4697277586870293640" datatype="html">
         <source>Rubro:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
-          <context context-type="linenumber">466</context>
+          <context context-type="linenumber">488</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6241103101583281121" datatype="html">
         <source>Cod Barra:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
-          <context context-type="linenumber">469</context>
+          <context context-type="linenumber">491</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4798961227159743968" datatype="html">
         <source>Cerrar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/comparador-productos-precios/comparador-productos-precios.component.html</context>
-          <context context-type="linenumber">478,479</context>
+          <context context-type="linenumber">500,501</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/pages/resultados-comparador/resultados-comparador.component.html</context>
