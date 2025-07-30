@@ -630,8 +630,8 @@ button:focus {
   font-size: 24px !important;
   height: 24px !important;
   width: 24px !important;
-  cursor: help;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  /* cursor: help; */
+  /* transition: transform 0.2s ease, opacity 0.2s ease; */
 }
 
 .warning-icon:hover {
@@ -641,7 +641,7 @@ button:focus {
 
 /* Icono para sin stock */
 .sin-stock-icon {
-  color: #f44336; /* Rojo */
+  color: #f82213; /* Rojo */
 }
 
 /* Icono para sin precio */
@@ -651,7 +651,7 @@ button:focus {
 
 /* Icono para sin precio actual */
 .sin-precio-actual-icon {
-  color: #ffeb3b; /* Amarillo */
+  color: #ffe600; /* Amarillo */
 }
 
 /* Icono para cuando no hay datos */
@@ -660,12 +660,19 @@ button:focus {
 }
 
 /* Mejorar la celda de precio existente */
-.price-cell {
+.price-cell .warning-container {
+  min-height: 0 !important;
+  height: 100%;
   display: flex;
-  justify-content: center;
   align-items: center;
-  min-height: 40px;
-  padding: 8px 4px;
+  justify-content: center;
+  padding: 0 !important;
+}
+
+.price-cell {
+  min-height: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 /* Ajustes para dispositivos móviles */
@@ -735,9 +742,9 @@ button:focus {
   50% { opacity: 0.7; }
 }
 
-.sin-stock-icon {
+/* .sin-stock-icon {
   animation: warningPulse 2s infinite;
-}
+} */
 
 
 @media (prefers-color-scheme: dark) {
