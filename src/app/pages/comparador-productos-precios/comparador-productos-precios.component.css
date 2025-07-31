@@ -469,7 +469,7 @@ button:focus {
 }
 
 .price-cell {
-  display: flex;
+  display: grid;
   justify-content: center;
   align-items: center;
 }
@@ -673,6 +673,7 @@ button:focus {
   min-height: 0 !important;
   padding-top: 0 !important;
   padding-bottom: 0 !important;
+  /* display: block; */
 }
 
 /* Ajustes para dispositivos móviles */
@@ -714,6 +715,7 @@ button:focus {
 
 /* Actualizar el método esPrecioMasBajo para que funcione con el nuevo formato */
 .precio-barato .price {
+  display: block;
   color: green;
   font-weight: bold;
 }
@@ -721,6 +723,17 @@ button:focus {
 /* Mantener el estilo del supermercado ganador */
 .supermercado-ganador .price {
   color: white;
+  font-weight: bold;
+}
+
+/* Mantener el estilo del supermercado ganador */
+.supermercado-ganador .precio-con-promo {
+  color: rgb(15, 81, 12);
+  font-weight: bold;
+}
+
+.supermercado-ganador .precio-sin-promo {
+  color: rgb(81, 78, 77);
   font-weight: bold;
 }
 
@@ -840,3 +853,13 @@ button:focus {
 .sucursales-header {
   background-color: #DCDCDC;
 }
+
+.precio-sin-promo {
+  text-decoration: line-through;
+  color: rgb(81, 78, 77);
+}
+  
+.precio-con-promo {
+  color: rgb(15, 81, 12);
+}
+

@@ -793,11 +793,22 @@ export class ComparadorProductosPreciosComponent implements OnInit {
   private determinarEstadoProducto(producto: any): EstadoProducto {
     // Campos del SP:
     // - sin_stock: boolean
+    // nuevo con_promocion: precios que tienen el campo = 1 en el sp
     // - sin_precio: boolean
     // - sin_precio_actual: boolean
     // - mejor_precio: number (puede ser null)
 
     // Prioridad: Sin stock > Sin precio > Sin precio actual > Con precio
+    
+    if (producto.con_promocion){
+      return {
+        estado: 'con_promocion',
+        mensaje_tooltip: this.selectedLanguage === 'en' ? 'Offer Price Until: '+ producto.fecha_fin_promocion : 'Precio en Oferta Hasta: ' + producto.fecha_fin_promocion,
+        precio: producto.mejor_precio,
+        precio_promocion: producto.mejor_precio_promocion
+      }
+    }
+
     if (producto.sin_stock) {
       return {
         estado: 'sin_stock',
@@ -837,7 +848,7 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     const supermercadosValidos: string[] = this.supermercados.filter((supermercado) =>
       this.productosComparados.every((producto) => {
         const estadoProducto = producto.precios[supermercado];
-        return estadoProducto && estadoProducto.estado === 'con_precio' && estadoProducto.precio !== undefined;
+        return estadoProducto && estadoProducto.estado === 'con_precio' || estadoProducto.estado === 'con_promocion' && estadoProducto.precio !== undefined;
       })
     );
 
@@ -845,7 +856,10 @@ export class ComparadorProductosPreciosComponent implements OnInit {
     supermercadosValidos.forEach((supermercado) => {
       this.totalesSupermercado[supermercado] = this.productosComparados.reduce((total, producto) => {
         const estadoProducto = producto.precios[supermercado];
-        return total + (estadoProducto && estadoProducto.precio !== undefined ? estadoProducto.precio : 0);
+        if (estadoProducto.precio_promocion){
+          return total + (estadoProducto && estadoProducto.precio_promocion !== undefined ? estadoProducto.precio_promocion : 0);
+        } else {  return total + (estadoProducto && estadoProducto.precio !== undefined ? estadoProducto.precio : 0); }
+
       }, 0);
     });
 
@@ -882,6 +896,7 @@ export class ComparadorProductosPreciosComponent implements OnInit {
   verDetalles(producto: any) {
     // Si el idioma es inglés, busca los valores traducidos
     if (this.selectedLanguage === 'en' && this.traducciones && producto) {
+      this.mostrarModal = true;
       this.productoSeleccionado = {
         ...producto,
         nom_categoria:
@@ -978,6 +993,5 @@ export class ComparadorProductosPreciosComponent implements OnInit {
   goToAdminSupermercados() {
     this.router.navigate(['/home/administrador-supermercados']);
   }
-
 
 }

@@ -16,7 +16,8 @@ export interface Producto {
 
 export interface EstadoProducto {
     precio?: number,
-    estado: 'con_precio' | 'sin_stock' | 'sin_precio' | 'sin_precio_actual';
+    precio_promocion?: number,
+    estado: 'con_promocion' | 'con_precio' | 'sin_stock' | 'sin_precio' | 'sin_precio_actual';
     mensaje_tooltip: string;
 }
 
@@ -27,6 +28,8 @@ export interface productosComparados {
     nro_supermercado?: number,
     razon_social?: string,
     mejor_precio?: number,
+    mejor_precio_promocion?: number, // nuevo
+    fecha_fin_promocion?: string, // nuevo
     precios: { [supermercado: string]: EstadoProducto };
     // sin_stock?: {[key: string]: number}; // 1 si no hay stock, 0 si hay
     // sin_precio?: {[key: string]: number} // 1 si no hay precio, 0 si tiene

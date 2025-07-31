@@ -302,18 +302,33 @@
                     esPrecioMasBajo(producto.precios[supermercado], producto)
                   " [class.supermercado-ganador]="
                     supermercado === supermercadoMasBarato &&
-                    producto.precios[supermercado]?.estado === 'con_precio'
+                    producto.precios[supermercado]?.estado === 'con_precio'  || producto.precios[supermercado]?.estado === 'con_promocion'
                   ">
                   <div class="price-cell">
+                    <!-- Mostrar precio promocionado-->
+                    <span [class.precio-con-promo]="producto.precios[supermercado]?.estado === 'con_promocion'" *ngIf="
+                        producto.precios[supermercado]?.estado === 'con_promocion' && producto.precios[supermercado].precio_promocion > 0
+                      " class="price" [matTooltip]="
+                          producto.precios[supermercado]?.mensaje_tooltip
+                        " matTooltipPosition="above">
+                      {{
+                      producto.precios[supermercado].precio_promocion
+                      | currency : "ARS" : "symbol" : "1.2-2"
+                      }}
+                    </span>
+
+
                     <!-- Mostrar precio normal -->
                     <span *ngIf="
-                        producto.precios[supermercado]?.estado === 'con_precio'
-                      " class="price">
+                        producto.precios[supermercado]?.estado === 'con_precio' || producto.precios[supermercado]?.estado === 'con_promocion'
+                      " class="price"
+                      [class.precio-sin-promo]="producto.precios[supermercado]?.estado === 'con_promocion' && producto.precios[supermercado]?.precio_promocion > 0">
                       {{
                       producto.precios[supermercado].precio
                       | currency : "ARS" : "symbol" : "1.2-2"
                       }}
                     </span>
+
 
                     <!-- Mostrar warning para sin stock -->
                     <div *ngIf="
@@ -398,7 +413,7 @@
                         [disabled]="!supermercadoMasBarato" (click)="
                         verSucursales()" i18n [disabled]="!isSupermercadoGanador">
                         <mat-icon> {{ !showSucursales ? 'store_mall_directory' : 'visibility_off' }} </mat-icon>
-                        {{ !showSucursales ? getMsgVerSucursales() : getMsgOcultarSucursales() }} 
+                        {{ !showSucursales ? getMsgVerSucursales() : getMsgOcultarSucursales() }}
                       </button>
                     </div>
                   </div>
@@ -440,19 +455,23 @@
             <table mat-table [dataSource]="sucursalesSource" multiTemplateDataRows class="sucursales-table">
               <!-- ...columnas... -->
               <ng-container matColumnDef="nom_supermercado">
-                <th mat-header-cell *matHeaderCellDef style="background-color: #DCDCDC " i18n> <strong>Supermercado </strong></th>
+                <th mat-header-cell *matHeaderCellDef style="background-color: #DCDCDC " i18n> <strong>Supermercado
+                  </strong></th>
                 <td mat-cell *matCellDef="let sucursal">{{ sucursal.nom_supermercado }}</td>
               </ng-container>
               <ng-container matColumnDef="nom_localidad">
-                <th mat-header-cell *matHeaderCellDef style="background-color: #DCDCDC" i18n><strong>Localidad </strong></th>
+                <th mat-header-cell *matHeaderCellDef style="background-color: #DCDCDC" i18n><strong>Localidad </strong>
+                </th>
                 <td mat-cell *matCellDef="let sucursal">{{ sucursal.nom_localidad }}</td>
               </ng-container>
               <ng-container matColumnDef="nom_sucursal">
-                <th mat-header-cell *matHeaderCellDef style="background-color: #DCDCDC " i18n> <strong>Nombre Sucursal </strong></th>
+                <th mat-header-cell *matHeaderCellDef style="background-color: #DCDCDC " i18n> <strong>Nombre Sucursal
+                  </strong></th>
                 <td mat-cell *matCellDef="let sucursal">{{ sucursal.nom_sucursal }}</td>
               </ng-container>
               <ng-container matColumnDef="ubicacion">
-                <th mat-header-cell *matHeaderCellDef style="background-color: #DCDCDC " i18n><strong>Ubicación </strong></th>
+                <th mat-header-cell *matHeaderCellDef style="background-color: #DCDCDC " i18n><strong>Ubicación
+                  </strong></th>
                 <td mat-cell *matCellDef="let sucursal">
                   {{ sucursal.calle }} {{ sucursal.nro_calle }}, {{ sucursal.nom_localidad }}
                 </td>
@@ -518,63 +537,64 @@
         </mat-card-content>
       </mat-card>
 
-      <!-- Modal de Detalles del Producto -->
-      <div *ngIf="mostrarModal" class="modal-overlay" (click)="cerrarModal()">
-        <mat-card class="product-modal" (click)="$event.stopPropagation()">
-          <mat-card-header>
-            <mat-card-title i18n>Detalles del Producto</mat-card-title>
-            <span class="modal-spacer"></span>
-            <button mat-icon-button (click)="cerrarModal()">
-              <mat-icon>close</mat-icon>
-            </button>
-          </mat-card-header>
-          <mat-card-content>
-            <!-- Imagen del Producto -->
-            <div class="product-image-container">
-              <img [src]="productoSeleccionado.imagen" [alt]="productoSeleccionado.nom_producto"
-                class="product-modal-image" />
-            </div>
 
-            <!-- Detalles del Producto -->
-            <mat-list>
-              <mat-list-item>
-                <strong i18n>Nombre del Producto:</strong>
-                {{ productoSeleccionado?.nom_producto }}
-              </mat-list-item>
-              <mat-list-item>
-                <strong i18n>Descripción:</strong>
-                {{ productoSeleccionado?.desc_producto }}
-              </mat-list-item>
-              <mat-list-item>
-                <strong i18n>Categoría:</strong>
-                {{ productoSeleccionado?.nom_categoria }}
-              </mat-list-item>
-              <mat-list-item>
-                <strong i18n>Marca:</strong> {{ productoSeleccionado?.nom_marca }}
-              </mat-list-item>
-              <mat-list-item>
-                <strong i18n>Tipo de Producto:</strong>
-                {{ productoSeleccionado?.nom_tipo_producto }}
-              </mat-list-item>
-              <mat-list-item>
-                <strong i18n>Rubro:</strong> {{ productoSeleccionado?.nom_rubro }}
-              </mat-list-item>
-              <mat-list-item>
-                <strong i18n>Cod Barra:</strong> {{ productoSeleccionado?.cod_barra }}
-              </mat-list-item>
-
-              <!-- <mat-list-item>
-          <strong i18n>Vigente:</strong> {{ productoSeleccionado?.vigente === 's' ? 'Sí' : 'No' }}
-        </mat-list-item> -->
-            </mat-list>
-          </mat-card-content>
-          <mat-card-actions>
-            <button mat-raised-button (click)="cerrarModal()" color="accent" i18n>Cerrar</button>
-          </mat-card-actions>
-        </mat-card>
-      </div>
 
       <router-outlet></router-outlet>
+    </div>
+    <!-- Modal de Detalles del Producto -->
+    <div *ngIf="mostrarModal" class="modal-overlay" (click)="cerrarModal()">
+      <mat-card class="product-modal" (click)="$event.stopPropagation()">
+        <mat-card-header>
+          <mat-card-title i18n>Detalles del Producto</mat-card-title>
+          <span class="modal-spacer"></span>
+          <button mat-icon-button (click)="cerrarModal()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-card-header>
+        <mat-card-content>
+          <!-- Imagen del Producto -->
+          <div class="product-image-container">
+            <img [src]="productoSeleccionado.imagen" [alt]="productoSeleccionado.nom_producto"
+              class="product-modal-image" />
+          </div>
+
+          <!-- Detalles del Producto -->
+          <mat-list>
+            <mat-list-item>
+              <strong i18n>Nombre del Producto:</strong>
+              {{ productoSeleccionado?.nom_producto }}
+            </mat-list-item>
+            <mat-list-item>
+              <strong i18n>Descripción:</strong>
+              {{ productoSeleccionado?.desc_producto }}
+            </mat-list-item>
+            <mat-list-item>
+              <strong i18n>Categoría:</strong>
+              {{ productoSeleccionado?.nom_categoria }}
+            </mat-list-item>
+            <mat-list-item>
+              <strong i18n>Marca:</strong> {{ productoSeleccionado?.nom_marca }}
+            </mat-list-item>
+            <mat-list-item>
+              <strong i18n>Tipo de Producto:</strong>
+              {{ productoSeleccionado?.nom_tipo_producto }}
+            </mat-list-item>
+            <mat-list-item>
+              <strong i18n>Rubro:</strong> {{ productoSeleccionado?.nom_rubro }}
+            </mat-list-item>
+            <mat-list-item>
+              <strong i18n>Cod Barra:</strong> {{ productoSeleccionado?.cod_barra }}
+            </mat-list-item>
+
+            <!-- <mat-list-item>
+          <strong i18n>Vigente:</strong> {{ productoSeleccionado?.vigente === 's' ? 'Sí' : 'No' }}
+        </mat-list-item> -->
+          </mat-list>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-raised-button (click)="cerrarModal()" color="accent" i18n>Cerrar</button>
+        </mat-card-actions>
+      </mat-card>
     </div>
   </mat-sidenav-content>
 </mat-sidenav-container>
